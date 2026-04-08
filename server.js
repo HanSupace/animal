@@ -22,11 +22,9 @@ io.on('connection', (socket) => {
     socket.on('join_room', ({ roomName, userName }) => {
         socket.join(roomName);
         socket.roomName = roomName;
-
         if (!rooms[roomName]) {
-            rooms[roomName] = { users: {}, isGameRunning: false, isCountdown: false };
+            rooms[roomName] = { users: {}, isGameRunning: false, isCountdown: false, gameType: null };
         }
-
         rooms[roomName].users[socket.id] = { userName, ready: false, score: 0 };
         io.to(roomName).emit('chat_message', { user: '시스템', text: `${userName}님이 입장하셨습니다.` });
         io.to(roomName).emit('update_users', rooms[roomName].users);
@@ -39,20 +37,47 @@ io.on('connection', (socket) => {
         user.ready = !user.ready;
         io.to(roomName).emit('update_users', rooms[roomName].users);
         
-        // 준비를 눌렀을 때 혼자라면 안내 메시지 전송
         const userIds = Object.keys(rooms[roomName].users);
         if (user.ready && userIds.length < 2) {
-            socket.emit('chat_message', { user: '시스템', text: '최소 2명이 있어야 게임이 시작됩니다.' });
+            socket.emit('chat_message', { user: '시스템', text: '최소 2명이 있어야 시작됩니다.' });
         }
-
         checkGameStart(roomName);
     });
 
-    socket.on('click_action', () => {
+    socket.on('game_action', (score) => {
         const roomName = socket.roomName;
         if (!roomName || !rooms[roomName] || !rooms[roomName].isGameRunning) return;
-        rooms[roomName].users[socket.id].score += 1;
+        
+        if (rooms[roomName].gameType === 'click') {
+            rooms[roomName].users[socket.id].score += 1;
+        } else {
+            if (rooms[roomName].users[socket.id].score === 9999) {
+                rooms[roomName].users[socket.id].score = score;
+                io.to(roomName).emit('update_users', rooms[roomName].users);
+                endGame(roomName); // 정상 클릭 시 바로 종료
+            }
+        }
         io.to(roomName).emit('update_users', rooms[roomName].users);
+    });
+
+    // 부정 출발 처리
+    socket.on('game_foul', () => {
+        const roomName = socket.roomName;
+        if (!roomName || !rooms[roomName] || !rooms[roomName].isGameRunning) return;
+        
+        if (rooms[roomName].gameType === 'reaction') {
+            const foulerId = socket.id;
+            const winners = [];
+            // 부정 출발한 사람 제외하고 모두를 우승자로 설정
+            for (const id in rooms[roomName].users) {
+                if (id !== foulerId) {
+                    winners.push(rooms[roomName].users[id].userName);
+                }
+            }
+            // 실격 점수 부여
+            rooms[roomName].users[foulerId].score = 99999;
+            endGame(roomName, winners, 99999, foulerId);
+        }
     });
 
     socket.on('send_message', (message) => {
@@ -84,46 +109,69 @@ function checkGameStart(roomName) {
     const room = rooms[roomName];
     if (!room) return;
     const userIds = Object.keys(room.users);
-    
-    // 2명 미만이면 시작 안 함
     if (userIds.length < 2) return; 
     
     const allReady = userIds.every(id => room.users[id].ready);
 
     if (allReady && !room.isGameRunning && !room.isCountdown) {
         room.isCountdown = true;
+        const games = ['click', 'reaction'];
+        room.gameType = games[Math.floor(Math.random() * games.length)];
+        
+        io.to(roomName).emit('game_selected', room.gameType);
         io.to(roomName).emit('game_countdown', 3);
-        io.to(roomName).emit('chat_message', { user: '시스템', text: '잠시 후 대결이 시작됩니다!' });
 
         setTimeout(() => {
             if (!rooms[roomName]) return;
             room.isCountdown = false;
             room.isGameRunning = true;
-            userIds.forEach(id => room.users[id].score = 0);
+            userIds.forEach(id => room.users[id].score = (room.gameType === 'click' ? 0 : 9999));
             io.to(roomName).emit('update_users', room.users);
 
-            const duration = 10; 
-            io.to(roomName).emit('game_start', duration);
-            io.to(roomName).emit('chat_message', { user: '시스템', text: '🔥 대결 시작! 🔥' });
+            const duration = (room.gameType === 'click' ? 10 : 15);
+            io.to(roomName).emit('game_start', { type: room.gameType, duration });
 
-            setTimeout(() => endGame(roomName), duration * 1000);
+            if (room.gameType === 'click') {
+                setTimeout(() => endGame(roomName), duration * 1000);
+            }
         }, 3000);
     }
 }
 
-function endGame(roomName) {
+function endGame(roomName, winnersOverride = null, scoreOverride = null, foulerId = null) {
     const room = rooms[roomName];
-    if (!room) return;
+    if (!room || !room.isGameRunning) return;
+
     room.isGameRunning = false;
-    let maxScore = -1, winners = [];
-    for (const id in room.users) {
-        const user = room.users[id];
-        user.ready = false; 
-        if (user.score > maxScore) { maxScore = user.score; winners = [user.userName]; }
-        else if (user.score === maxScore) winners.push(user.userName);
+    let winners = winnersOverride || [];
+    let bestScore = scoreOverride;
+
+    if (!winnersOverride) {
+        if (room.gameType === 'click') {
+            bestScore = -1;
+            for (const id in room.users) {
+                const user = room.users[id];
+                if (user.score > bestScore) { bestScore = user.score; winners = [user.userName]; }
+                else if (user.score === bestScore && user.score > 0) winners.push(user.userName);
+            }
+        } else {
+            bestScore = 9999;
+            for (const id in room.users) {
+                const user = room.users[id];
+                if (user.score < bestScore && user.score > 0) { bestScore = user.score; winners = [user.userName]; }
+                else if (user.score === bestScore && user.score < 9999) winners.push(user.userName);
+            }
+        }
     }
+
+    for (const id in room.users) room.users[id].ready = false;
     io.to(roomName).emit('update_users', room.users);
-    io.to(roomName).emit('game_over', { winners, maxScore });
+    io.to(roomName).emit('game_over', { 
+        winners, 
+        maxScore: bestScore, 
+        type: room.gameType, 
+        foulerId: foulerId 
+    });
 }
 
 const PORT = process.env.PORT || 3000;
