@@ -24,7 +24,12 @@ io.on('connection', (socket) => {
         socket.roomName = roomName;
 
         if (!rooms[roomName]) {
-            rooms[roomName] = { users: {}, isGameRunning: false, isCountdown: false };
+            rooms[roomName] = { 
+                users: {}, 
+                isGameRunning: false, 
+                isCountdown: false,
+                currentGameMode: null // 현재 무슨 게임인지 저장
+            };
         }
 
         rooms[roomName].users[socket.id] = { userName, ready: false, score: 0 };
@@ -48,12 +53,40 @@ io.on('connection', (socket) => {
         checkGameStart(roomName);
     });
 
+    /* [수정 제안] */
     socket.on('click_action', () => {
         const roomName = socket.roomName;
-        if (!roomName || !rooms[roomName] || !rooms[roomName].isGameRunning) return;
-        rooms[roomName].users[socket.id].score += 1;
-        io.to(roomName).emit('update_users', rooms[roomName].users);
+        const room = rooms[roomName];
+        // 게임이 실행 중이고, 현재 모드가 'CLICK'일 때만 점수 증가
+        if (!room || !room.isGameRunning || room.currentGameMode !== 'CLICK') return;
+        
+        room.users[socket.id].score += 1;
+        io.to(roomName).emit('update_users', room.users);
     });
+
+    // 공 피하기 탈락 신호 (새로 추가)
+    socket.on('player_dead', () => {
+    const roomName = socket.roomName;
+    const room = rooms[roomName];
+    if (!room || !room.isGameRunning || room.currentGameMode !== 'AVOID') return;
+
+    room.users[socket.id].isDead = true;
+    io.to(roomName).emit('update_users', room.users);
+
+    const userIds = Object.keys(room.users);
+    const aliveUsers = userIds.filter(id => !room.users[id].isDead);
+
+    // [수정된 로직]
+    if (aliveUsers.length === 1) {
+        // 마지막 한 명이 남으면 그 사람이 우승! 즉시 종료
+        io.to(roomName).emit('chat_message', { user: '시스템', text: `최후의 생존자 ${room.users[aliveUsers[0]].userName}님 승리!` });
+        endGame(roomName);
+    } else if (aliveUsers.length === 0) {
+        // 다 같이 죽어버린 경우
+        io.to(roomName).emit('chat_message', { user: '시스템', text: '모두 전멸했습니다...' });
+        endGame(roomName);
+    }
+});
 
     socket.on('send_message', (message) => {
         const roomName = socket.roomName;
@@ -99,14 +132,29 @@ function checkGameStart(roomName) {
             if (!rooms[roomName]) return;
             room.isCountdown = false;
             room.isGameRunning = true;
-            userIds.forEach(id => room.users[id].score = 0);
+
+            // --- 🎲 랜덤 게임 선택 로직 ---
+            const modes = ['CLICK', 'AVOID'];
+            room.currentGameMode = modes[Math.floor(Math.random() * modes.length)];
+            const duration = (room.currentGameMode === 'CLICK') ? 10 : 30; // 클릭은 10초, 피하기는 30초
+            // ---------------------------
+
+            userIds.forEach(id => {
+                room.users[id].score = 0;
+                room.users[id].isDead = false;
+            });
+
             io.to(roomName).emit('update_users', room.users);
 
-            const duration = 10; 
-            io.to(roomName).emit('game_start', duration);
-            io.to(roomName).emit('chat_message', { user: '시스템', text: '🔥 대결 시작! 🔥' });
+            // 클라이언트에 모드와 시간 전달
+            io.to(roomName).emit('game_start', { mode: room.currentGameMode, duration: duration });
+            
+            const modeText = room.currentGameMode === 'CLICK' ? '🔥 광클 대결! 🔥' : '🏃 빨간 공 피하기! 🏃';
+            io.to(roomName).emit('chat_message', { user: '시스템', text: modeText });
 
-            setTimeout(() => endGame(roomName), duration * 1000);
+            room.gameTimeout = setTimeout(() => {
+                endGame(roomName);
+            }, duration * 1000);
         }, 3000);
     }
 }
@@ -114,16 +162,41 @@ function checkGameStart(roomName) {
 function endGame(roomName) {
     const room = rooms[roomName];
     if (!room) return;
-    room.isGameRunning = false;
-    let maxScore = -1, winners = [];
-    for (const id in room.users) {
-        const user = room.users[id];
-        user.ready = false; 
-        if (user.score > maxScore) { maxScore = user.score; winners = [user.userName]; }
-        else if (user.score === maxScore) winners.push(user.userName);
+
+    if (!room || !room.isGameRunning) return; // [CHECK] 이미 종료된 경우 중복 실행 방지
+
+    // [CHECK] 예약되어 있던 타이머가 있다면 취소 (조기 종료 시 필요)
+    if (room.gameTimeout) {
+        clearTimeout(room.gameTimeout);
+        room.gameTimeout = null;
     }
+
+    const mode = room.currentGameMode;
+    room.isGameRunning = false;
+    room.currentGameMode = null;
+
+    let maxScore = -1, winners = [];
+
+    if (mode === 'CLICK') {
+        // 기존 클릭 게임 승자 방식
+        for (const id in room.users) {
+            const user = room.users[id];
+            user.ready = false; 
+            if (user.score > maxScore) { maxScore = user.score; winners = [user.userName]; }
+            else if (user.score === maxScore) winners.push(user.userName);
+        }
+    } else {
+        // 공 피하기 승자 방식 (안 죽은 사람 모두 우승)
+        for (const id in room.users) {
+            const user = room.users[id];
+            user.ready = false;
+            if (!user.isDead) winners.push(user.userName);
+        }
+        maxScore = "생존"; 
+    }
+
     io.to(roomName).emit('update_users', room.users);
-    io.to(roomName).emit('game_over', { winners, maxScore });
+    io.to(roomName).emit('game_over', { winners, maxScore, mode });
 }
 
 const PORT = process.env.PORT || 3000;
