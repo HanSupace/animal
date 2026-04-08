@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>쫄? - 클릭 대결</title>
+    <style>
+        :root {
+            --point-color: #ffeb3b; 
+            --text-color: #ffffff;
+            --btn-green: #4caf50;
+            --btn-orange: #ff9800;
+        }
+
+        body {
+            font-family: 'Do Hyeon', sans-serif;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255, 235, 59, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(255, 152, 0, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at center, #a70b13 0%, #3a0002 100%);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container { text-align: center; width: 90%; max-width: 400px; }
+
+        .app-logo {
+            font-size: 160px; 
+            margin: 0 0 40px 0;
+            color: #ffdd33; 
+            display: inline-block;
+            transform: rotate(10deg);
+            text-shadow: 
+                -3px -3px 0 #fffbe6, 3px -3px 0 #fffbe6,
+                -3px 3px 0 #e69500, 3px 3px 0 #e69500,
+                0px 6px 0 #cc7a00, 0px 12px 0 #b35f00,
+                0px 18px 0 #994700, 0px 24px 20px rgba(0,0,0,0.8);
+            animation: float 3s ease-in-out infinite; 
+        }
+
+        @keyframes float {
+            0% { transform: rotate(10deg) translateY(0px); }
+            50% { transform: rotate(10deg) translateY(-15px); }
+            100% { transform: rotate(10deg) translateY(0px); }
+        }
+
+        input[type="text"] {
+            width: 100%; padding: 15px; font-size: 18px; border-radius: 50px;
+            border: 2px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.4);
+            color: white; box-sizing: border-box; margin-bottom: 15px; text-align: center;
+            font-family: inherit;
+        }
+
+        button {
+            width: 100%; padding: 15px; font-size: 24px;
+            border: none; border-radius: 50px; cursor: pointer; transition: all 0.2s;
+            margin-bottom: 10px; box-shadow: 0 6px 0px rgba(0,0,0,0.3); font-family: inherit;
+        }
+        button:active { transform: translateY(4px); box-shadow: 0 2px 0px rgba(0,0,0,0.3); }
+
+        .btn-main { background-color: var(--point-color); color: #3a0002; }
+        .btn-sub { background-color: transparent; color: white; border: 2px solid rgba(255,255,255,0.5); }
+        .btn-back { margin-top: 15px; border-color: rgba(255, 255, 255, 0.3); color: #ccc; font-size: 20px; }
+        
+        .screen { display: none; }
+        .active { display: block; animation: fadeIn 0.4s; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        #welcome-msg { font-size: 28px; color: var(--point-color); margin-bottom: 20px; }
+        #join-input-area { display: none; margin-top: 15px; }
+
+        #usersList { background: rgba(0,0,0,0.5); padding: 15px; border-radius: 20px; text-align: left; margin-bottom: 20px; backdrop-filter: blur(5px);}
+        #userUl { list-style: none; padding: 0; margin: 0; }
+        #userUl li { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 20px; }
+        .ready-status { color: #81c784; }
+        .not-ready { color: #e57373; }
+
+        #readyBtn { background-color: var(--btn-green); color: white; }
+        
+        #timer { 
+            font-size: 80px; 
+            color: var(--point-color); 
+            display: none; 
+            margin: 20px 0; 
+            text-shadow: 0 0 20px rgba(255, 235, 59, 0.6);
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        #clickBtn { 
+            font-size: 50px; 
+            padding: 40px; 
+            background: radial-gradient(circle, #ff5e5e 0%, #c62828 100%); 
+            display: none; 
+            border-radius: 30px; 
+            color: white; 
+            border: none;
+            box-shadow: 0 10px 0px #8e0000;
+        }
+
+        /* 버튼이 비활성화 되었을 때의 스타일 (대기 상태) */
+        #clickBtn:disabled {
+            background: #555555;
+            box-shadow: 0 10px 0px #333333;
+            color: #aaaaaa;
+            cursor: not-allowed;
+            transform: none; /* 클릭해도 안 눌리게 됨 */
+        }
+
+        .chat-box { height: 100px; background: rgba(0,0,0,0.4); border-radius: 15px; overflow-y: auto; padding: 10px; text-align: left; margin-top: 15px; font-size: 16px;}
+        .chat-input-set { display: flex; gap: 5px; margin-top: 5px; }
+        #chatInput { margin-bottom: 0; padding: 10px 15px; border-radius: 15px; flex-grow: 1; font-size: 18px;}
+        #sendChatBtn { width: auto; margin-bottom: 0; padding: 10px 20px; border-radius: 15px; background: #555; }
+
+        /* 결과 팝업 창 스타일 */
+        #resultPopup {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s;
+        }
+        .popup-title {
+            font-size: 100px;
+            margin: 0 0 20px 0;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .win-text { color: #ffeb3b; text-shadow: 0 5px 15px rgba(255, 235, 59, 0.5); }
+        .lose-text { color: #e57373; text-shadow: 0 5px 15px rgba(229, 115, 115, 0.5); }
+        .popup-desc { font-size: 24px; color: white; margin-bottom: 40px; }
+        
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h1 class="app-logo">쫄?</h1>
+
+    <div id="screen-landing" class="screen active">
+        <input type="text" id="userName" placeholder="닉네임을 입력하세요" maxlength="8" autocomplete="off"/>
+        <button class="btn-main" onclick="goToMenu()">시작하기</button>
+    </div>
+
+    <div id="screen-role" class="screen">
+        <p id="welcome-msg"></p>
+        <button class="btn-main" onclick="createRoom()">방 만들기</button>
+        <button class="btn-sub" onclick="showJoinInput()">입장하기</button>
+        <div id="join-input-area">
+            <input type="text" id="roomNameInput" placeholder="방 코드" maxlength="10" autocomplete="off" style="text-transform:uppercase"/>
+            <button class="btn-main" onclick="joinRoom()">입장 완료</button>
+        </div>
+        <button class="btn-sub btn-back" onclick="goBackToLanding()">← 뒤로가기</button>
+    </div>
+
+    <div id="screen-game" class="screen">
+        <h2 id="roomTitle" style="color: rgba(255,255,255,0.7); margin-top:0;"></h2>
+        <div id="usersList">
+            <h4 style="margin: 0 0 10px 0; color: var(--point-color); font-size: 22px;">참가자 목록</h4>
+            <ul id="userUl"></ul>
+        </div>
+        <button id="readyBtn" onclick="toggleReady()">준비하기 (Ready)</button>
+        <div id="timer"><span id="timeDisplay">3</span></div>
+        <button id="clickBtn" onclick="sendClick()">클릭</button>
+        <div class="chat-box" id="chatBox"></div>
+        <div class="chat-input-set">
+            <input type="text" id="chatInput" placeholder="메시지를 입력하세요" onkeypress="handleKeyPress(event)" autocomplete="off"/>
+            <button id="sendChatBtn" onclick="sendMessage()">👉</button>
+        </div>
+        <button id="leaveBtn" class="btn-sub btn-back" onclick="leaveRoom()">← 방 나가기</button>
+    </div>
+</div>
+
+<div id="resultPopup">
+    <h1 id="popupTitle" class="popup-title"></h1>
+    <p id="popupDesc" class="popup-desc"></p>
+    <button class="btn-main" style="width: 200px;" onclick="closePopup()">확인</button>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    let myName = "";
+    let isMyReady = false;
+    let countdownInterval;
+
+    const screens = document.querySelectorAll('.screen');
+    const userNameInput = document.getElementById('userName');
+    const welcomeMsg = document.getElementById('welcome-msg');
+    const roomNameInput = document.getElementById('roomNameInput');
+    const joinInputArea = document.getElementById('join-input-area');
+    const roomTitle = document.getElementById('roomTitle');
+    const userUl = document.getElementById('userUl');
+    const readyBtn = document.getElementById('readyBtn');
+    const leaveBtn = document.getElementById('leaveBtn');
+    const clickBtn = document.getElementById('clickBtn');
+    const timerDiv = document.getElementById('timer');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const chatBox = document.getElementById('chatBox');
+    const chatInput = document.getElementById('chatInput');
+    
+    // 팝업 관련 요소
+    const resultPopup = document.getElementById('resultPopup');
+    const popupTitle = document.getElementById('popupTitle');
+    const popupDesc = document.getElementById('popupDesc');
+
+    function changeScreen(screenId) {
+        screens.forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    function goToMenu() {
+        myName = userNameInput.value.trim();
+        if (!myName) return alert("닉네임을 입력해 주세요.");
+        welcomeMsg.innerText = `반갑습니다, ${myName}님!`;
+        changeScreen('screen-role');
+    }
+
+    function goBackToLanding() {
+        joinInputArea.style.display = 'none'; 
+        roomNameInput.value = ''; 
+        changeScreen('screen-landing');
+    }
+
+    function createRoom() {
+        const randomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+        performJoin(randomCode);
+    }
+
+    function showJoinInput() {
+        joinInputArea.style.display = joinInputArea.style.display === 'block' ? 'none' : 'block';
+        roomNameInput.focus();
+    }
+
+    function joinRoom() {
+        const code = roomNameInput.value.trim().toUpperCase();
+        if (!code) return alert("방 코드를 입력해 주세요.");
+        socket.emit('check_room', code, (exists) => {
+            if (exists) performJoin(code); 
+            else alert("존재하지 않는 방 코드입니다."); 
+        });
+    }
+
+    function performJoin(roomCode) {
+        chatBox.innerHTML = ''; 
+        socket.emit('join_room', { roomName: roomCode, userName: myName });
+        roomTitle.innerText = `ROOM : ${roomCode}`;
+        changeScreen('screen-game');
+    }
+
+    function leaveRoom() {
+        socket.emit('leave_room');
+        isMyReady = false;
+        clearInterval(countdownInterval);
+        resetUI();
+        changeScreen('screen-role');
+    }
+
+    function resetUI() {
+        readyBtn.innerText = "준비하기 (Ready)";
+        readyBtn.style.backgroundColor = "var(--btn-green)";
+        readyBtn.style.display = 'inline-block';
+        leaveBtn.style.display = 'inline-block';
+        clickBtn.style.display = 'none';
+        timerDiv.style.display = 'none';
+    }
+
+    function toggleReady() {
+        socket.emit('toggle_ready');
+        isMyReady = !isMyReady;
+        readyBtn.innerText = isMyReady ? "준비 취소" : "준비하기 (Ready)";
+        readyBtn.style.backgroundColor = isMyReady ? "var(--btn-orange)" : "var(--btn-green)";
+    }
+
+    function sendClick() { 
+        // 버튼이 비활성화 상태가 아닐 때만 클릭 인정
+        if(!clickBtn.disabled) {
+            socket.emit('click_action'); 
+        }
+    }
+
+    function sendMessage() {
+        const message = chatInput.value;
+        if (message.trim()) {
+            socket.emit('send_message', message);
+            chatInput.value = '';
+        }
+    }
+    function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
+
+    function closePopup() {
+        resultPopup.style.display = 'none';
+    }
+
+    socket.on('update_users', (users) => {
+        userUl.innerHTML = '';
+        for (const id in users) {
+            const u = users[id];
+            const li = document.createElement('li');
+            const status = u.ready ? '<span class="ready-status">[준비완료]</span>' : '<span class="not-ready">[대기중]</span>';
+            li.innerHTML = `${status} ${u.userName} <span style="float:right; color:var(--point-color);"><b>${u.score}</b> 클릭</span>`;
+            userUl.appendChild(li);
+        }
+    });
+
+    // 시작 전 카운트다운 이벤트
+    socket.on('game_countdown', (count) => {
+        readyBtn.style.display = 'none';
+        leaveBtn.style.display = 'none';
+        timerDiv.style.display = 'block';
+        
+        // 버튼을 미리 띄우되 비활성화(회색) 상태로 만듦
+        clickBtn.style.display = 'inline-block';
+        clickBtn.disabled = true;
+        clickBtn.innerText = '대기...';
+        
+        let currentCount = count;
+        timeDisplay.innerText = currentCount;
+        
+        const introInterval = setInterval(() => {
+            currentCount -= 1;
+            if (currentCount > 0) {
+                timeDisplay.innerText = currentCount;
+            } else {
+                timeDisplay.innerText = "시작!";
+                clearInterval(introInterval);
+            }
+        }, 1000);
+    });
+
+    socket.on('game_start', (duration) => {
+        // 카운트다운이 끝나고 진짜 게임 시작 시 버튼 활성화
+        clickBtn.disabled = false;
+        clickBtn.innerText = '클릭';
+        
+        let timeLeft = duration;
+        timeDisplay.innerText = timeLeft;
+        countdownInterval = setInterval(() => {
+            timeLeft -= 1;
+            timeDisplay.innerText = timeLeft;
+            if (timeLeft <= 0) clearInterval(countdownInterval);
+        }, 1000);
+    });
+
+    socket.on('game_over', ({ winners, maxScore }) => {
+        clearInterval(countdownInterval);
+        resetUI(); // 화면 초기화 (준비 버튼 다시 띄우기)
+
+        // 승패 판단 (우승자 목록에 내 이름이 있는지 확인)
+        const isWinner = winners.includes(myName);
+
+        if (isWinner) {
+            popupTitle.innerText = "승리!";
+            popupTitle.className = "popup-title win-text";
+            popupDesc.innerText = `최고 기록: ${maxScore}회`;
+        } else {
+            popupTitle.innerText = "긁?";
+            popupTitle.className = "popup-title lose-text";
+            popupDesc.innerText = `우승자: ${winners.join(', ')} (${maxScore}회)`;
+        }
+
+        // 팝업 띄우기
+        resultPopup.style.display = 'flex';
+        
+        isMyReady = false;
+    });
+
+    socket.on('chat_message', (data) => {
+        const p = document.createElement('p');
+        p.style.margin = '5px 0';
+        p.innerHTML = `<b style="color:var(--point-color)">${data.user}:</b> ${data.text}`;
+        chatBox.appendChild(p);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+</script>
+</body>
+</html>
