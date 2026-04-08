@@ -15,16 +15,19 @@
         body {
             font-family: 'Do Hyeon', sans-serif;
             background: 
-                radial-gradient(circle at 20% 30%, rgba(255, 235, 59, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 80% 70%, rgba(255, 152, 0, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at center, #a70b13 0%, #3a0002 100%);
+            radial-gradient(circle at 20% 30%, rgba(255, 235, 59, 0.15) 0%, transparent 40%),
+            radial-gradient(circle at 80% 70%, rgba(255, 152, 0, 0.15) 0%, transparent 40%),
+            radial-gradient(circle at center, #a70b13 0%, #3a0002 100%);
             color: var(--text-color);
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            overflow: hidden;
+            
+            /* 👇 여기부터 수정된 부분입니다 👇 */
+            min-height: 100dvh; /* 모바일 브라우저의 상하단 주소창을 고려하여 화면에 딱 맞게 최소 높이 설정 */
+            overflow-y: auto;   /* 내용이 화면 높이보다 길어지면 위아래로 스크롤 허용 */
+            padding: 20px 0;    /* 스크롤 시 위아래 여백을 주어 답답하지 않게 만듦 */
         }
 
         .container { text-align: center; width: 90%; max-width: 400px; }
