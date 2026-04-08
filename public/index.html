@@ -30,6 +30,19 @@
             padding: 20px 0;    /* 스크롤 시 위아래 여백을 주어 답답하지 않게 만듦 */
         }
 
+        /* [NEW] 공 피하기 캔버스 스타일 추가 */
+        #avoidCanvas {
+            display: none;
+            background: #111;
+            border: 2px solid var(--point-color);
+            margin: 10px auto;
+            border-radius: 15px;
+            touch-action: none; /* 모바일 스크롤 방지 */
+            width: 100%;
+            max-width: 350px;
+            height: 350px;
+        }
+
         .container { text-align: center; width: 90%; max-width: 400px; }
 
         .app-logo {
@@ -183,6 +196,8 @@
         <button id="readyBtn" onclick="toggleReady()">준비하기 (Ready)</button>
         <div id="timer"><span id="timeDisplay">3</span></div>
         <button id="clickBtn" onclick="sendClick()">클릭</button>
+        <canvas id="avoidCanvas" width="350" height="350"></canvas>
+        
         <div class="chat-box" id="chatBox"></div>
         <div class="chat-input-set">
             <input type="text" id="chatInput" placeholder="메시지를 입력하세요" onkeypress="handleKeyPress(event)" autocomplete="off"/>
@@ -204,6 +219,13 @@
     let myName = "";
     let isMyReady = false;
     let countdownInterval;
+
+    // [NEW] 공 피하기용 변수들
+    let avoidGameActive = false;
+    let avoidEnemies = [];
+    let playerPos = { x: 175, y: 175 };
+    const avoidCanvas = document.getElementById('avoidCanvas');
+    const avoidCtx = avoidCanvas.getContext('2d');
 
     const screens = document.querySelectorAll('.screen');
     const userNameInput = document.getElementById('userName');
@@ -283,7 +305,9 @@
         readyBtn.style.display = 'inline-block';
         leaveBtn.style.display = 'inline-block';
         clickBtn.style.display = 'none';
+        avoidCanvas.style.display = 'none'; // [NEW] 캔버스 숨김
         timerDiv.style.display = 'none';
+        avoidGameActive = false; // [NEW] 게임 루프 정지
     }
 
     function toggleReady() {
@@ -319,7 +343,9 @@
             const u = users[id];
             const li = document.createElement('li');
             const status = u.ready ? '<span class="ready-status">[준비완료]</span>' : '<span class="not-ready">[대기중]</span>';
-            li.innerHTML = `${status} ${u.userName} <span style="float:right; color:var(--point-color);"><b>${u.score}</b> 클릭</span>`;
+            // [MOD] 탈락 상태 표시 추가
+            const deadText = u.isDead ? '<span style="color:gray;">(탈락)</span>' : '';
+            li.innerHTML = `${status} ${u.userName} ${deadText} <span style="float:right;"><b>${u.score}</b> 클릭</span>`;
             userUl.appendChild(li);
         }
     });
@@ -349,35 +375,107 @@
         }, 1000);
     });
 
-    socket.on('game_start', (duration) => {
-        // 카운트다운이 끝나고 진짜 게임 시작 시 버튼 활성화
-        clickBtn.disabled = false;
-        clickBtn.innerText = '클릭';
+    // [MOD] 서버에서 보낸 객체 { mode, duration }에 따라 분기 처리
+    socket.on('game_start', (data) => {
+        const { mode, duration } = data;
         
+        if (mode === 'CLICK') {
+            clickBtn.style.display = 'inline-block';
+            clickBtn.disabled = false;
+            clickBtn.innerText = '클릭';
+        } else if (mode === 'AVOID') {
+            avoidCanvas.style.display = 'block'; // [NEW] 캔버스 보이기
+            initAvoidGame(); // [NEW] 공 피하기 초기화
+        }
+
         let timeLeft = duration;
         timeDisplay.innerText = timeLeft;
         countdownInterval = setInterval(() => {
             timeLeft -= 1;
             timeDisplay.innerText = timeLeft;
-            if (timeLeft <= 0) clearInterval(countdownInterval);
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                avoidGameActive = false; // [NEW] 시간 종료 시 루프 정지
+            }
         }, 1000);
     });
 
-    socket.on('game_over', ({ winners, maxScore }) => {
+
+    // [NEW] 공 피하기 엔진 함수들
+    function initAvoidGame() {
+        avoidGameActive = true;
+        avoidEnemies = [];
+        playerPos = { x: 175, y: 175 };
+        for(let i=0; i<8; i++) {
+            avoidEnemies.push({
+                x: Math.random() * avoidCanvas.width,
+                y: Math.random() * avoidCanvas.height,
+                dx: (Math.random() - 0.5) * 7,
+                dy: (Math.random() - 0.5) * 7,
+                r: 6
+            });
+        }
+        requestAnimationFrame(updateAvoidFrame);
+    }
+
+    function updateAvoidFrame() {
+        if (!avoidGameActive) return;
+        avoidCtx.clearRect(0, 0, avoidCanvas.width, avoidCanvas.height);
+        
+        // 플레이어
+        avoidCtx.beginPath();
+        avoidCtx.arc(playerPos.x, playerPos.y, 8, 0, Math.PI*2);
+        avoidCtx.fillStyle = '#2196f3';
+        avoidCtx.fill();
+
+        // 적 공 이동 및 그리기
+        avoidCtx.fillStyle = '#ff5252';
+        avoidEnemies.forEach(en => {
+            en.x += en.dx; en.y += en.dy;
+            if(en.x < 0 || en.x > avoidCanvas.width) en.dx *= -1;
+            if(en.y < 0 || en.y > avoidCanvas.height) en.dy *= -1;
+            
+            avoidCtx.beginPath();
+            avoidCtx.arc(en.x, en.y, en.r, 0, Math.PI*2);
+            avoidCtx.fill();
+
+            // 충돌 감지
+            const dist = Math.hypot(playerPos.x - en.x, playerPos.y - en.y);
+            if(dist < 14) {
+                avoidGameActive = false;
+                socket.emit('player_dead'); // [NEW] 서버에 탈락 알림
+            }
+        });
+        if(avoidGameActive) requestAnimationFrame(updateAvoidFrame);
+    }
+
+    // [NEW] 마우스/터치 컨트롤러
+    const handleMove = (e) => {
+        if(!avoidGameActive) return;
+        const rect = avoidCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        playerPos.x = clientX - rect.left;
+        playerPos.y = clientY - rect.top;
+    };
+    avoidCanvas.addEventListener('mousemove', handleMove);
+    avoidCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e); }, { passive: false });
+
+    // [MOD] 결과 팝업 분기 처리
+    socket.on('game_over', ({ winners, maxScore, mode }) => {
         clearInterval(countdownInterval);
+        avoidGameActive = false;
         resetUI(); // 화면 초기화 (준비 버튼 다시 띄우기)
 
         // 승패 판단 (우승자 목록에 내 이름이 있는지 확인)
         const isWinner = winners.includes(myName);
+        popupTitle.innerText = isWinner ? "승리!" : "긁?";
+        popupTitle.className = isWinner ? "popup-title win-text" : "popup-title lose-text";
 
-        if (isWinner) {
-            popupTitle.innerText = "승리!";
-            popupTitle.className = "popup-title win-text";
-            popupDesc.innerText = `최고 기록: ${maxScore}회`;
+        if (mode === 'CLICK') {
+            popupDesc.innerText = isWinner ? `최고 기록: ${maxScore}회` : `우승자: ${winners.join(', ')} (${maxScore}회)`;
         } else {
-            popupTitle.innerText = "긁?";
-            popupTitle.className = "popup-title lose-text";
-            popupDesc.innerText = `우승자: ${winners.join(', ')} (${maxScore}회)`;
+            popupDesc.innerText = isWinner ? "끝까지 살아남았습니다!" : `생존자: ${winners.length > 0 ? winners.join(', ') : '없음'}`;
         }
 
         // 팝업 띄우기
