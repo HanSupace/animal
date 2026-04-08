@@ -1,0 +1,41 @@
+// reactionGame.js - 반응속도 게임 로직
+
+function startReactionGame(io, roomName, room) {
+    const randomDelay = Math.random() * 4000 + 2000;
+    room.reactionTimer = setTimeout(() => {
+        if (room.isGameRunning && room.currentGameMode === 'REACTION') {
+            io.to(roomName).emit('reaction_go');
+        }
+    }, randomDelay);
+}
+
+function handleReactionResult(io, roomName, room, socketId, resultTime, endGame) {
+    if (!room || !room.isGameRunning || room.currentGameMode !== 'REACTION') return;
+
+    if (resultTime === -1) {
+        room.users[socketId].score = 99999;
+        endGame(roomName, socketId); // 부정 출발 즉시 종료
+    } else {
+        room.users[socketId].score = resultTime;
+        endGame(roomName); // 정상 클릭 즉시 종료
+    }
+}
+
+function resolveReactionWinner(room) {
+    let winners = [];
+    let bestResult = Infinity;
+
+    for (const id in room.users) {
+        const user = room.users[id];
+        if (user.score > 0 && user.score < bestResult) {
+            bestResult = user.score;
+            winners = [user.userName];
+        } else if (user.score > 0 && user.score === bestResult) {
+            winners.push(user.userName);
+        }
+    }
+
+    return { winners, bestResult: bestResult === Infinity ? "없음" : bestResult };
+}
+
+module.exports = { startReactionGame, handleReactionResult, resolveReactionWinner };

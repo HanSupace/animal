@@ -65,7 +65,8 @@
         #clickBtn { font-size: 50px; padding: 40px; background: radial-gradient(circle, #ff5e5e 0%, #c62828 100%); display: none; border-radius: 30px; color: white; box-shadow: 0 10px 0px #8e0000; width:100%; }
         #clickBtn:disabled { background: #555; box-shadow: 0 10px 0px #333; color: #aaa; cursor: not-allowed; }
 
-        #avoidCanvas { display: none; background: #111; border: 2px solid var(--point-color); margin: 10px auto; border-radius: 15px; touch-action: none; width: 100%; max-width: 350px; height: 350px; }
+        /* [FIX] canvas는 고정 크기로, JS에서 스케일 처리 */
+        #avoidCanvas { display: none; background: #111; border: 2px solid var(--point-color); margin: 10px auto; border-radius: 15px; touch-action: none; display: none; width: 350px; height: 350px; max-width: 100%; }
 
         .chat-box { height: 100px; background: rgba(0,0,0,0.4); border-radius: 15px; overflow-y: auto; padding: 10px; text-align: left; margin-top: 15px; font-size: 16px;}
         .chat-input-set { display: flex; gap: 5px; margin-top: 5px; }
@@ -180,9 +181,14 @@
     }
 
     function resetUI() {
+        // [FIX] countdownInterval도 여기서 클리어
+        clearInterval(countdownInterval);
+
         const readyBtn = document.getElementById('readyBtn');
         readyBtn.innerText = "준비하기 (Ready)";
+        // [FIX] 버튼 색상도 초록으로 리셋
         readyBtn.style.backgroundColor = "var(--btn-green)";
+        readyBtn.style.color = "#3a0002";
         readyBtn.style.display = 'inline-block';
         document.getElementById('leaveBtn').style.display = 'inline-block';
         
@@ -195,6 +201,7 @@
         avoidGameActive = false;
         renderLoopActive = false;
         reactionArea.className = 'rect-wait';
+        isMyReady = false;
     }
 
     function toggleReady() {
@@ -203,6 +210,8 @@
         const btn = document.getElementById('readyBtn');
         btn.innerText = isMyReady ? "준비 취소" : "준비하기 (Ready)";
         btn.style.backgroundColor = isMyReady ? "var(--btn-orange)" : "var(--btn-green)";
+        // [FIX] 준비 취소 시 글자색도 복구
+        btn.style.color = "#3a0002";
     }
 
     function sendClick() {
@@ -249,7 +258,7 @@
 
         if(mode === 'AVOID') {
             avoidCanvas.style.display = 'block';
-            initAvoidGameSetup(); // 적들은 멈춰있고 내 캐릭터만 조종 가능하게 세팅
+            initAvoidGameSetup();
         } else if(mode === 'REACTION') {
             reactionArea.style.display = 'flex';
             reactionArea.className = 'rect-wait';
@@ -282,7 +291,7 @@
             const btn = document.getElementById('clickBtn');
             btn.disabled = false; btn.innerText = '클릭!';
         } else if (mode === 'AVOID') {
-            avoidGameActive = true; // 이제 빨간 공들이 움직이기 시작함
+            avoidGameActive = true;
         } else if (mode === 'REACTION') {
             document.getElementById('timer').style.display = 'none';
         }
@@ -304,15 +313,12 @@
     });
 
     socket.on('game_over', ({ winners, maxScore, mode, foulerId }) => {
-        clearInterval(countdownInterval);
         const pTitle = document.getElementById('popupTitle');
         const pDesc = document.getElementById('popupDesc');
         
-        // 내 이름이 우승자 목록에 있는지 확인
         const isWinner = winners.some(w => w.trim() === myName.trim());
 
         if (mode === 'REACTION' && foulerId) {
-            // 반응속도 부정출발 상황
             if (socket.id === foulerId) {
                 pTitle.innerText = "빨리 탭하기 긁?";
                 pTitle.className = "popup-title lose-text";
@@ -321,7 +327,6 @@
                 pTitle.className = "popup-title win-text";
             }
         } else {
-            // 일반 게임 또는 정상 반응속도 승리
             if (isWinner) {
                 pTitle.innerText = "승리!";
                 pTitle.className = "popup-title win-text";
@@ -339,14 +344,24 @@
         pDesc.innerText = desc;
         document.getElementById('resultPopup').style.display = 'flex';
         
-        resetUI(); // 화면 초기화
-        isMyReady = false;
+        resetUI();
     });
 
     // --- 공 피하기 엔진 ---
+    // [FIX] canvas 좌표 스케일 계산 함수
+    function getCanvasPos(clientX, clientY) {
+        const rect = avoidCanvas.getBoundingClientRect();
+        const scaleX = avoidCanvas.width / rect.width;
+        const scaleY = avoidCanvas.height / rect.height;
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+    }
+
     function initAvoidGameSetup() {
         renderLoopActive = true; 
-        avoidGameActive = false; // 카운트다운 동안 적은 멈춤
+        avoidGameActive = false;
         avoidEnemies = []; playerPos = { x: 175, y: 175 };
         for(let i=0; i<8; i++) {
             avoidEnemies.push({ x: Math.random()*350, y: Math.random()*350, dx: (Math.random()-0.5)*7, dy: (Math.random()-0.5)*7, r: 6 });
@@ -358,10 +373,8 @@
         if (!renderLoopActive) return;
         avoidCtx.clearRect(0, 0, 350, 350);
         
-        // 내 캐릭터 그리기
         avoidCtx.beginPath(); avoidCtx.arc(playerPos.x, playerPos.y, 8, 0, Math.PI*2); avoidCtx.fillStyle = '#2196f3'; avoidCtx.fill();
         
-        // 적 그리기
         avoidCtx.fillStyle = '#ff5252';
         avoidEnemies.forEach(en => {
             if (avoidGameActive) {
@@ -370,7 +383,6 @@
             }
             avoidCtx.beginPath(); avoidCtx.arc(en.x, en.y, en.r, 0, Math.PI*2); avoidCtx.fill();
             
-            // 게임 시작 후에만 충돌 판정
             if(avoidGameActive && Math.hypot(playerPos.x - en.x, playerPos.y - en.y) < 14) {
                 avoidGameActive = false; 
                 socket.emit('player_dead');
@@ -379,14 +391,15 @@
         requestAnimationFrame(updateAvoidFrame);
     }
     
+    // [FIX] 스케일 보정 적용
     avoidCanvas.addEventListener('mousemove', (e) => {
-        const rect = avoidCanvas.getBoundingClientRect();
-        playerPos.x = e.clientX - rect.left; playerPos.y = e.clientY - rect.top;
+        const pos = getCanvasPos(e.clientX, e.clientY);
+        playerPos.x = pos.x; playerPos.y = pos.y;
     });
     avoidCanvas.addEventListener('touchmove', (e) => {
         e.preventDefault();
-        const rect = avoidCanvas.getBoundingClientRect();
-        playerPos.x = e.touches[0].clientX - rect.left; playerPos.y = e.touches[0].clientY - rect.top;
+        const pos = getCanvasPos(e.touches[0].clientX, e.touches[0].clientY);
+        playerPos.x = pos.x; playerPos.y = pos.y;
     }, { passive: false });
 
     function sendMessage() {
