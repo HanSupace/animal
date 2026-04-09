@@ -150,6 +150,8 @@
 <script>
     const socket = io();
     let myName = "", isMyReady = false, countdownInterval;
+    let resultStep = 0;
+    let lastResultData = null;
     
     let currentGameMode = null;
     let avoidGameActive = false, renderLoopActive = false, avoidEnemies = [], playerPos = { x: 175, y: 175 };
@@ -341,38 +343,12 @@
     });
 
     socket.on('game_over', ({ winners, maxScore, mode, foulerId }) => {
-        const pTitle = document.getElementById('popupTitle');
-        const pDesc = document.getElementById('popupDesc');
-        
         const isWinner = winners.some(w => w.trim() === myName.trim());
 
-        if (mode === 'REACTION' && foulerId) {
-            if (socket.id === foulerId) {
-                pTitle.innerText = "빨리 탭하기 긁?";
-                pTitle.className = "popup-title lose-text";
-            } else {
-                pTitle.innerText = "승리!";
-                pTitle.className = "popup-title win-text";
-            }
-        } else {
-            if (isWinner) {
-                pTitle.innerText = "승리!";
-                pTitle.className = "popup-title win-text";
-            } else {
-                pTitle.innerText = "긁?";
-                pTitle.className = "popup-title lose-text";
-            }
-        }
-        
-        let desc = `우승자: ${winners.join(', ')}`;
-        if (mode === 'CLICK') desc += ` (${maxScore}회)`;
-        else if (mode === 'REACTION') desc += (maxScore === 9999 || maxScore === "실격" ? " (실패)" : ` (${maxScore}ms)`);
-        else if (mode === 'AVOID') desc += ` (생존)`;
-        
-        pDesc.innerText = desc;
-        document.getElementById('resultPopup').style.display = 'flex';
-        
-        resetUI();
+        lastResultData = { winners, maxScore, mode, foulerId, isWinner };
+        resultStep = 0;
+
+        showResultStep();
     });
 
     // --- 공 피하기 엔진 ---
@@ -441,7 +417,68 @@
         document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
     });
 
-    function closePopup() { document.getElementById('resultPopup').style.display = 'none'; }
+    function showResultStep() {
+        const pTitle = document.getElementById('popupTitle');
+        const pDesc = document.getElementById('popupDesc');
+        const data = lastResultData;
+
+        if (resultStep === 0) {
+            // 첫 화면 (승패)
+            if (data.mode === 'REACTION' && data.foulerId) {
+                if (socket.id === data.foulerId) {
+                    pTitle.innerText = "빨리 탭하기 긁?";
+                    pTitle.className = "popup-title lose-text";
+                } else {
+                    pTitle.innerText = "승리!";
+                    pTitle.className = "popup-title win-text";
+                }
+            } else {
+                if (data.isWinner) {
+                    pTitle.innerText = "승리!";
+                    pTitle.className = "popup-title win-text";
+                } else {
+                    pTitle.innerText = "패배..";
+                    pTitle.className = "popup-title lose-text";
+                }
+            }
+
+            let desc = `우승자: ${data.winners.join(', ')}`;
+            if (data.mode === 'CLICK') desc += ` (${data.maxScore}회)`;
+            else if (data.mode === 'REACTION') desc += (data.maxScore === 9999 || data.maxScore === "실격" ? " (실패)" : ` (${data.maxScore}ms)`);
+            else if (data.mode === 'AVOID') desc += ` (생존)`;
+
+            pDesc.innerText = desc;
+        }
+
+        else if (resultStep === 1 && !data.isWinner) {
+            // 패배자만 긁? 표시
+            pTitle.innerText = "긁?";
+            pTitle.className = "popup-title lose-text";
+            pDesc.innerText = "긁?";
+            resultStep === 2;
+        }
+
+        else if (resultStep === 2 && !data.isWinner) {
+            // 패배자만 긁? 표시
+            pTitle.innerText = "긁?";
+            pTitle.className = "popup-title lose-text";
+            pDesc.innerText = "ㅋㅋㅋㅋ 진짜 긁?";
+        }
+
+        else {
+            // 종료 → 방으로 복귀
+            document.getElementById('resultPopup').style.display = 'none';
+            resetUI();
+            return;
+        }
+
+        document.getElementById('resultPopup').style.display = 'flex';
+    }
+
+    function closePopup() {
+        resultStep++;
+        showResultStep();
+    }
     function leaveRoom() { location.reload(); }
     function goBackToLanding() { changeScreen('screen-landing'); }
 </script>
