@@ -63,21 +63,17 @@ function startRandomGame(io, rooms, roomName, endGame) {
 function resolveWinners(room, mode, foulerId = null) {
     if (foulerId && mode === 'REACTION') {
         const winners = [];
-        const winnerIds = [];
         for (const id in room.users) {
-            if (id !== foulerId) {
-                winners.push(room.users[id].userName);
-                winnerIds.push(id);
-            }
+            if (id !== foulerId) winners.push(room.users[id].userName);
         }
-        return { winners, winnerIds, bestResult: "실격" };
+        return { winners, bestResult: "실격" };
     }
 
     if (mode === 'CLICK') return resolveClickWinner(room);
     if (mode === 'AVOID') return resolveAvoidWinner(room);
     if (mode === 'REACTION') return resolveReactionWinner(room);
 
-    return { winners: [],winnerIds: [], bestResult: "없음" };
+    return { winners: [], bestResult: "없음" };
 }
 
 module.exports = {

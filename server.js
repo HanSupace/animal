@@ -1,6 +1,13 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const {
+    startRandomGame,
+    resolveWinners,
+    handleClickAction,
+    handlePlayerDead,
+    handleReactionResult,
+} = require('./games');
 
 const app = express();
 const server = http.createServer(app);
@@ -15,159 +22,150 @@ app.get('/', (req, res) => {
 const rooms = {};
 
 io.on('connection', (socket) => {
+
+    // 방 존재 확인
     socket.on('check_room', (roomCode, callback) => {
         callback(rooms.hasOwnProperty(roomCode));
     });
 
+    // 방 입장
     socket.on('join_room', ({ roomName, userName }) => {
         socket.join(roomName);
         socket.roomName = roomName;
 
+        // 방 없으면 생성
         if (!rooms[roomName]) {
-            rooms[roomName] = { 
-                users: {}, 
-                isGameRunning: false, 
+            rooms[roomName] = {
+                users: {},
+                isGameRunning: false,
                 isCountdown: false,
                 currentGameMode: null,
                 gameTimeout: null,
-                reactionTimer: null
+                reactionTimer: null,
+                roomBet: null // 🔥 전체 내기
             };
         }
 
-        rooms[roomName].users[socket.id] = { userName, ready: false, score: 0, isDead: false };
+        // 유저 추가
+        rooms[roomName].users[socket.id] = { 
+            userName, 
+            ready: false, 
+            score: 0, 
+            isDead: false,
+            betType: null // 🔥 개인 선택
+        };
+
+        // 🔥 현재 내기 있으면 새로 들어온 사람에게 알려줌
+        if (rooms[roomName].roomBet) {
+            socket.emit('room_bet_update', rooms[roomName].roomBet);
+        }
+
         io.to(roomName).emit('chat_message', { user: '시스템', text: `${userName}님이 입장하셨습니다.` });
         io.to(roomName).emit('update_users', rooms[roomName].users);
     });
 
+    // 준비 버튼
     socket.on('toggle_ready', () => {
         const roomName = socket.roomName;
         if (!roomName || !rooms[roomName]) return;
+
         const user = rooms[roomName].users[socket.id];
         user.ready = !user.ready;
+
         io.to(roomName).emit('update_users', rooms[roomName].users);
-        
+
         const userIds = Object.keys(rooms[roomName].users);
         if (user.ready && userIds.length < 2) {
             socket.emit('chat_message', { user: '시스템', text: '최소 2명이 있어야 게임이 시작됩니다.' });
         }
 
-        checkGameStart(roomName);
+        startRandomGame(io, rooms, roomName, endGame);
     });
 
+    // 클릭 게임
     socket.on('click_action', () => {
         const roomName = socket.roomName;
-        const room = rooms[roomName];
-        if (!room || !room.isGameRunning || room.currentGameMode !== 'CLICK') return;
-        room.users[socket.id].score += 1;
-        io.to(roomName).emit('update_users', room.users);
+        handleClickAction(io, roomName, rooms[roomName], socket.id);
     });
 
+    // 공 피하기
     socket.on('player_dead', () => {
         const roomName = socket.roomName;
-        const room = rooms[roomName];
-        if (!room || !room.isGameRunning || room.currentGameMode !== 'AVOID') return;
-
-        room.users[socket.id].isDead = true;
-        io.to(roomName).emit('update_users', room.users);
-
-        const userIds = Object.keys(room.users);
-        const aliveUsers = userIds.filter(id => !room.users[id].isDead);
-
-        if (aliveUsers.length <= 1) {
-            endGame(roomName);
-        }
+        handlePlayerDead(io, roomName, rooms[roomName], socket.id, endGame);
     });
 
+    // 반응속도
     socket.on('reaction_result', (resultTime) => {
         const roomName = socket.roomName;
-        const room = rooms[roomName];
-        if (!room || !room.isGameRunning || room.currentGameMode !== 'REACTION') return;
-
-        if (resultTime === -1) {
-            room.users[socket.id].score = 99999;
-            endGame(roomName, socket.id); // 부정 출발 즉시 종료
-        } else {
-            room.users[socket.id].score = resultTime;
-            endGame(roomName); // 정상 클릭 즉시 종료
-        }
+        handleReactionResult(io, roomName, rooms[roomName], socket.id, resultTime, endGame);
     });
 
+    // 채팅
     socket.on('send_message', (message) => {
         const roomName = socket.roomName;
         if (!roomName || !rooms[roomName]) return;
+
         const userName = rooms[roomName].users[socket.id].userName;
         io.to(roomName).emit('chat_message', { user: userName, text: message });
     });
 
+    // 🔥 내기 선택 (핵심 기능)
+    socket.on('select_bet', (bet) => {
+        const roomName = socket.roomName;
+        if (!roomName || !rooms[roomName]) return;
+
+        const room = rooms[roomName];
+        const user = room.users[socket.id];
+        if (!user) return;
+
+        user.betType = bet;
+
+        // 🔥 마지막 선택을 방 전체 내기로 설정
+        room.roomBet = bet;
+
+        io.to(roomName).emit('room_bet_update', room.roomBet);
+        io.to(roomName).emit('update_users', room.users);
+    });
+
+    // 게임 선택 메시지 (optional)
+    socket.on('game_selected', (mode) => {
+        let gameName = "";
+
+        if (mode === "CLICK") gameName = "클릭 게임";
+        if (mode === "AVOID") gameName = "공 피하기 게임";
+        if (mode === "REACTION") gameName = "반응속도 게임";
+
+        io.to(socket.roomName).emit('chat_message', { user: '시스템', text: `🎮 랜덤 게임: ${gameName}` });
+    });
+
+    // 나가기
     socket.on('leave_room', () => handleUserLeave(socket));
     socket.on('disconnect', () => handleUserLeave(socket));
 });
 
+// 유저 나가기 처리
 function handleUserLeave(socket) {
     const roomName = socket.roomName;
+
     if (roomName && rooms[roomName] && rooms[roomName].users[socket.id]) {
         const userName = rooms[roomName].users[socket.id].userName;
+
         delete rooms[roomName].users[socket.id];
         socket.leave(roomName);
         socket.roomName = null;
+
         io.to(roomName).emit('chat_message', { user: '시스템', text: `${userName}님이 퇴장하셨습니다.` });
         io.to(roomName).emit('update_users', rooms[roomName].users);
-        if (Object.keys(rooms[roomName].users).length === 0) delete rooms[roomName];
-        else checkGameStart(roomName);
+
+        if (Object.keys(rooms[roomName].users).length === 0) {
+            delete rooms[roomName];
+        } else {
+            startRandomGame(io, rooms, roomName, endGame);
+        }
     }
 }
 
-function checkGameStart(roomName) {
-    const room = rooms[roomName];
-    if (!room) return;
-    const userIds = Object.keys(room.users);
-    if (userIds.length < 2) return; 
-    
-    const allReady = userIds.every(id => room.users[id].ready);
-
-    if (allReady && !room.isGameRunning && !room.isCountdown) {
-        room.isCountdown = true;
-        
-        const modes = ['CLICK', 'AVOID', 'REACTION'];
-        room.currentGameMode = modes[Math.floor(Math.random() * modes.length)];
-        
-        // 카운트다운 시작 전 게임 타입 전송 (클라이언트에서 캔버스 등을 세팅하기 위해)
-        io.to(roomName).emit('game_selected', room.currentGameMode);
-        io.to(roomName).emit('game_countdown', 3);
-
-        setTimeout(() => {
-            if (!rooms[roomName]) return;
-            room.isCountdown = false;
-            room.isGameRunning = true;
-
-            let duration = 10;
-            if (room.currentGameMode === 'AVOID') duration = 30;
-            if (room.currentGameMode === 'REACTION') duration = 15;
-
-            userIds.forEach(id => {
-                room.users[id].score = (room.currentGameMode === 'REACTION' ? 9999 : 0);
-                room.users[id].isDead = false;
-            });
-
-            io.to(roomName).emit('update_users', room.users);
-            io.to(roomName).emit('game_start', { mode: room.currentGameMode, duration: duration });
-            
-            if (room.currentGameMode === 'REACTION') {
-                const randomDelay = Math.random() * 4000 + 2000; 
-                room.reactionTimer = setTimeout(() => {
-                    if (room.isGameRunning && room.currentGameMode === 'REACTION') {
-                        io.to(roomName).emit('reaction_go');
-                    }
-                }, randomDelay);
-            }
-
-            room.gameTimeout = setTimeout(() => {
-                endGame(roomName);
-            }, duration * 1000);
-        }, 3000);
-    }
-}
-
+// 게임 종료
 function endGame(roomName, foulerId = null) {
     const room = rooms[roomName];
     if (!room || !room.isGameRunning) return;
@@ -179,64 +177,22 @@ function endGame(roomName, foulerId = null) {
     room.isGameRunning = false;
     room.currentGameMode = null;
 
-<<<<<<< Updated upstream
-    let winners = [];
-    let bestResult = Infinity;
-=======
-    const { winners,winnerIds, bestResult } = resolveWinners(room, mode, foulerId);
->>>>>>> Stashed changes
+    const { winners, bestResult } = resolveWinners(room, mode, foulerId);
 
-    if (foulerId && mode === 'REACTION') {
-        // 부정출발자 제외 모두 승리
-        for (const id in room.users) {
-            if (id !== foulerId) winners.push(room.users[id].userName);
-        }
-        bestResult = "실격";
-    } else {
-        if (mode === 'CLICK') {
-            let maxScore = -1;
-            for (const id in room.users) {
-                const user = room.users[id];
-                if (user.score > maxScore) { maxScore = user.score; winners = [user.userName]; }
-                else if (user.score === maxScore) winners.push(user.userName);
-            }
-            bestResult = maxScore;
-        } else if (mode === 'AVOID') {
-            for (const id in room.users) {
-                const user = room.users[id];
-                if (!user.isDead) winners.push(user.userName);
-            }
-            bestResult = "생존";
-        } else if (mode === 'REACTION') {
-            for (const id in room.users) {
-                const user = room.users[id];
-                if (user.score > 0 && user.score < bestResult) {
-                    bestResult = user.score;
-                    winners = [user.userName];
-                } else if (user.score > 0 && user.score === bestResult) {
-                    winners.push(user.userName);
-                }
-            }
-        }
+    for (const id in room.users) {
+        room.users[id].ready = false;
     }
 
-<<<<<<< Updated upstream
-    for (const id in room.users) room.users[id].ready = false;
-    
-    io.to(roomName).emit('game_over', { 
-        winners, 
-        maxScore: bestResult === Infinity ? "없음" : bestResult, 
-=======
     io.to(roomName).emit('game_over', {
         winners,
-        winnerIds,
         maxScore: bestResult,
->>>>>>> Stashed changes
         mode,
-        foulerId 
+        foulerId
     });
+
     io.to(roomName).emit('update_users', room.users);
 }
 
+// 서버 실행
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`🚀 서버 실행 중: 포트 ${PORT}`));

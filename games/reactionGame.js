@@ -23,7 +23,6 @@ function handleReactionResult(io, roomName, room, socketId, resultTime, endGame)
 
 function resolveReactionWinner(room) {
     let winners = [];
-    let winnerIds = [];
     let bestResult = Infinity;
 
     for (const id in room.users) {
@@ -31,14 +30,12 @@ function resolveReactionWinner(room) {
         if (user.score > 0 && user.score < bestResult) {
             bestResult = user.score;
             winners = [user.userName];
-            winnerIds = [id];
         } else if (user.score > 0 && user.score === bestResult) {
             winners.push(user.userName);
-            winnerIds.push(id);
         }
     }
 
-    return { winners,winnerIds, bestResult: bestResult === Infinity ? "없음" : bestResult };
+    return { winners, bestResult: bestResult === Infinity ? "없음" : bestResult };
 }
 
 module.exports = { startReactionGame, handleReactionResult, resolveReactionWinner };
