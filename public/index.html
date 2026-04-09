@@ -378,13 +378,17 @@
     }
     
     avoidCanvas.addEventListener('mousemove', (e) => {
-        const pos = getCanvasPos(e.clientX, e.clientY);
-        playerPos.x = pos.x; playerPos.y = pos.y;
+    const pos = getCanvasPos(e.clientX, e.clientY);
+    // 0 ~ 350 사이로 좌표 제한
+    playerPos.x = Math.max(0, Math.min(350, pos.x));
+    playerPos.y = Math.max(0, Math.min(350, pos.y));
     });
     avoidCanvas.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        const pos = getCanvasPos(e.touches[0].clientX, e.touches[0].clientY);
-        playerPos.x = pos.x; playerPos.y = pos.y;
+    e.preventDefault();
+    const pos = getCanvasPos(e.touches[0].clientX, e.touches[0].clientY);
+    // 모바일 터치도 동일하게 제한
+    playerPos.x = Math.max(0, Math.min(350, pos.x));
+    playerPos.y = Math.max(0, Math.min(350, pos.y));
     }, { passive: false });
 
     function sendMessage() {
