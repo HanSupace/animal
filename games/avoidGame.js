@@ -16,17 +16,13 @@ function handlePlayerDead(io, roomName, room, socketId, endGame) {
 
 function resolveAvoidWinner(room) {
     let winners = [];
-    let winnerIds = [];
 
     for (const id in room.users) {
         const user = room.users[id];
-        if (!user.isDead) {
-            winners.push(user.userName);
-            winnerIds.push(id);
-        }
+        if (!user.isDead) winners.push(user.userName);
     }
 
-    return { winners,winnerIds, bestResult: "생존" };
+    return { winners, bestResult: "생존" };
 }
 
 module.exports = { handlePlayerDead, resolveAvoidWinner };
