@@ -65,8 +65,7 @@
         #clickBtn { font-size: 50px; padding: 40px; background: radial-gradient(circle, #ff5e5e 0%, #c62828 100%); display: none; border-radius: 30px; color: white; box-shadow: 0 10px 0px #8e0000; width:100%; }
         #clickBtn:disabled { background: #555; box-shadow: 0 10px 0px #333; color: #aaa; cursor: not-allowed; }
 
-        /* [FIX] canvas는 고정 크기로, JS에서 스케일 처리 */
-        #avoidCanvas { display: none; background: #111; border: 2px solid var(--point-color); margin: 10px auto; border-radius: 15px; touch-action: none; display: none; width: 350px; height: 350px; max-width: 100%; }
+        #avoidCanvas { display: none; background: #111; border: 2px solid var(--point-color); margin: 10px auto; border-radius: 15px; touch-action: none; width: 350px; height: 350px; max-width: 100%; }
 
         .chat-box { height: 100px; background: rgba(0,0,0,0.4); border-radius: 15px; overflow-y: auto; padding: 10px; text-align: left; margin-top: 15px; font-size: 16px;}
         .chat-input-set { display: flex; gap: 5px; margin-top: 5px; }
@@ -110,8 +109,7 @@
         </div>
 
         <div style="margin-bottom:15px;">
-            <select id="myBet" onchange="selectBet()" 
-                style="width:100%; padding:10px; border-radius:10px; font-size:16px;">
+            <select id="myBet" onchange="selectBet()" style="width:100%; padding:10px; border-radius:10px; font-size:16px;">
                 <option value="">내기 선택</option>
                 <option value="밥">🍚 밥 내기</option>
                 <option value="카페">☕ 카페 내기</option>
@@ -122,11 +120,8 @@
         </div>
 
         <button id="readyBtn" onclick="toggleReady()">준비하기 (Ready)</button>
-        
         <h2 id="gameNameDisplay"></h2>
-        
         <div id="timer"><span id="timeDisplay">3</span></div>
-        
         <button id="clickBtn" onclick="sendClick()">클릭</button>
         <canvas id="avoidCanvas" width="350" height="350"></canvas>
         <div id="reactionArea" onclick="handleReactionClick()">화면이 초록색이 되면 클릭!</div>
@@ -155,7 +150,7 @@
     
     let currentGameMode = null;
     let avoidGameActive = false, renderLoopActive = false, avoidEnemies = [], playerPos = { x: 175, y: 175 };
-    let reactionStartTime = 0, reactionState = 'WAIT';
+    let reactionStartTime = 0, reactionState = 'DISABLED';
 
     const screens = document.querySelectorAll('.screen');
     const avoidCanvas = document.getElementById('avoidCanvas');
@@ -197,26 +192,19 @@
     }
 
     function resetUI() {
-        // [FIX] countdownInterval도 여기서 클리어
         clearInterval(countdownInterval);
-        
-
         const readyBtn = document.getElementById('readyBtn');
         readyBtn.innerText = "준비하기 (Ready)";
-        // [FIX] 버튼 색상도 초록으로 리셋
         readyBtn.style.backgroundColor = "var(--btn-green)";
         readyBtn.style.color = "#3a0002";
         readyBtn.style.display = 'inline-block';
         document.getElementById('leaveBtn').style.display = 'inline-block';
-        
         document.getElementById('gameNameDisplay').style.display = 'none';
         document.getElementById('clickBtn').style.display = 'none';
         document.getElementById('timer').style.display = 'none';
         avoidCanvas.style.display = 'none';
         reactionArea.style.display = 'none';
-
         document.getElementById('bigBetDisplay').innerText = "내기를 선택하세요";
-
         avoidGameActive = false;
         renderLoopActive = false;
         reactionArea.className = 'rect-wait';
@@ -229,7 +217,6 @@
         const btn = document.getElementById('readyBtn');
         btn.innerText = isMyReady ? "준비 취소" : "준비하기 (Ready)";
         btn.style.backgroundColor = isMyReady ? "var(--btn-orange)" : "var(--btn-green)";
-        // [FIX] 준비 취소 시 글자색도 복구
         btn.style.color = "#3a0002";
     }
 
@@ -243,6 +230,7 @@
     }
 
     function handleReactionClick() {
+        if (reactionState === 'DISABLED') return;
         if (reactionState === 'WAIT') {
             reactionState = 'FOUL';
             reactionArea.className = 'rect-foul';
@@ -263,19 +251,15 @@
             const li = document.createElement('li');
             const status = u.ready ? '<span class="ready-status">[준비완료]</span>' : '<span class="not-ready">[대기중]</span>';
             const dead = u.isDead ? '<span style="color:gray;">(탈락)</span>' : '';
-            const bet = u.betType ? `💸${u.betType}` : '';
-
             li.innerHTML = `${status} ${u.userName} ${dead} <span style="float:right;"><b>${u.score === 9999 ? '대기' : (u.score === 99999 ? '실격' : u.score)}</b></span>`;
             ul.appendChild(li);
         }
     });
 
-    // 서버가 게임을 선택하면 카운트다운 시작 전 UI 세팅
     socket.on('game_selected', (mode) => {
         currentGameMode = mode;
         document.getElementById('readyBtn').style.display = 'none';
         document.getElementById('leaveBtn').style.display = 'none';
-        
         const title = document.getElementById('gameNameDisplay');
         if(mode === 'CLICK') title.innerText = "🔥 광클 대결! 🔥";
         else if(mode === 'AVOID') title.innerText = "🏃 공 피하기! 🏃";
@@ -289,7 +273,7 @@
             reactionArea.style.display = 'flex';
             reactionArea.className = 'rect-wait';
             reactionArea.innerText = "대기...";
-            reactionState = 'WAIT';
+            reactionState = 'DISABLED';
         } else if(mode === 'CLICK') {
             const btn = document.getElementById('clickBtn');
             btn.style.display = 'block';
@@ -320,6 +304,8 @@
             avoidGameActive = true;
         } else if (mode === 'REACTION') {
             document.getElementById('timer').style.display = 'none';
+            reactionArea.innerText = "초록색이 되면 탭!";
+            reactionState = 'WAIT';
         }
 
         countdownInterval = setInterval(() => {
@@ -342,25 +328,18 @@
         document.getElementById('bigBetDisplay').innerText = `🔥 ${bet} 내기`;
     });
 
-    socket.on('game_over', ({ winners, maxScore, mode, foulerId }) => {
-        const isWinner = winners.some(w => w.trim() === myName.trim());
-
+    socket.on('game_over', ({ winners, winnerIds, maxScore, mode, foulerId }) => {
+        const isWinner = winnerIds && winnerIds.includes(socket.id);
         lastResultData = { winners, maxScore, mode, foulerId, isWinner };
         resultStep = 0;
-
         showResultStep();
     });
 
-    // --- 공 피하기 엔진 ---
-    // [FIX] canvas 좌표 스케일 계산 함수
     function getCanvasPos(clientX, clientY) {
         const rect = avoidCanvas.getBoundingClientRect();
         const scaleX = avoidCanvas.width / rect.width;
         const scaleY = avoidCanvas.height / rect.height;
-        return {
-            x: (clientX - rect.left) * scaleX,
-            y: (clientY - rect.top) * scaleY
-        };
+        return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
     }
 
     function initAvoidGameSetup() {
@@ -376,9 +355,7 @@
     function updateAvoidFrame() {
         if (!renderLoopActive) return;
         avoidCtx.clearRect(0, 0, 350, 350);
-        
         avoidCtx.beginPath(); avoidCtx.arc(playerPos.x, playerPos.y, 8, 0, Math.PI*2); avoidCtx.fillStyle = '#2196f3'; avoidCtx.fill();
-        
         avoidCtx.fillStyle = '#ff5252';
         avoidEnemies.forEach(en => {
             if (avoidGameActive) {
@@ -386,16 +363,13 @@
                 if(en.x < 0 || en.x > 350) en.dx *= -1; if(en.y < 0 || en.y > 350) en.dy *= -1;
             }
             avoidCtx.beginPath(); avoidCtx.arc(en.x, en.y, en.r, 0, Math.PI*2); avoidCtx.fill();
-            
             if(avoidGameActive && Math.hypot(playerPos.x - en.x, playerPos.y - en.y) < 14) {
-                avoidGameActive = false; 
-                socket.emit('player_dead');
+                avoidGameActive = false; socket.emit('player_dead');
             }
         });
         requestAnimationFrame(updateAvoidFrame);
     }
     
-    // [FIX] 스케일 보정 적용
     avoidCanvas.addEventListener('mousemove', (e) => {
         const pos = getCanvasPos(e.clientX, e.clientY);
         playerPos.x = pos.x; playerPos.y = pos.y;
@@ -423,7 +397,6 @@
         const data = lastResultData;
 
         if (resultStep === 0) {
-            // 첫 화면 (승패)
             if (data.mode === 'REACTION' && data.foulerId) {
                 if (socket.id === data.foulerId) {
                     pTitle.innerText = "빨리 탭하기 긁?";
@@ -441,37 +414,27 @@
                     pTitle.className = "popup-title lose-text";
                 }
             }
-
             let desc = `우승자: ${data.winners.join(', ')}`;
             if (data.mode === 'CLICK') desc += ` (${data.maxScore}회)`;
             else if (data.mode === 'REACTION') desc += (data.maxScore === 9999 || data.maxScore === "실격" ? " (실패)" : ` (${data.maxScore}ms)`);
             else if (data.mode === 'AVOID') desc += ` (생존)`;
-
             pDesc.innerText = desc;
         }
-
         else if (resultStep === 1 && !data.isWinner) {
-            // 패배자만 긁? 표시
             pTitle.innerText = "긁?";
             pTitle.className = "popup-title lose-text";
             pDesc.innerText = "긁?";
-            resultStep === 2;
         }
-
         else if (resultStep === 2 && !data.isWinner) {
-            // 패배자만 긁? 표시
             pTitle.innerText = "긁?";
             pTitle.className = "popup-title lose-text";
             pDesc.innerText = "ㅋㅋㅋㅋ 진짜 긁?";
         }
-
         else {
-            // 종료 → 방으로 복귀
             document.getElementById('resultPopup').style.display = 'none';
             resetUI();
             return;
         }
-
         document.getElementById('resultPopup').style.display = 'flex';
     }
 

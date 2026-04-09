@@ -177,7 +177,8 @@ function endGame(roomName, foulerId = null) {
     room.isGameRunning = false;
     room.currentGameMode = null;
 
-    const { winners, bestResult } = resolveWinners(room, mode, foulerId);
+    // 🔥 충돌 해결: winnerIds를 받아옵니다.
+    const { winners, winnerIds, bestResult } = resolveWinners(room, mode, foulerId);
 
     for (const id in room.users) {
         room.users[id].ready = false;
@@ -185,6 +186,7 @@ function endGame(roomName, foulerId = null) {
 
     io.to(roomName).emit('game_over', {
         winners,
+        winnerIds, // 🔥 필수! 클라이언트로 고유 ID 배열을 보내줍니다.
         maxScore: bestResult,
         mode,
         foulerId
