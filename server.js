@@ -179,8 +179,12 @@ function endGame(roomName, foulerId = null) {
     room.isGameRunning = false;
     room.currentGameMode = null;
 
+<<<<<<< Updated upstream
     let winners = [];
     let bestResult = Infinity;
+=======
+    const { winners,winnerIds, bestResult } = resolveWinners(room, mode, foulerId);
+>>>>>>> Stashed changes
 
     if (foulerId && mode === 'REACTION') {
         // 부정출발자 제외 모두 승리
@@ -216,11 +220,18 @@ function endGame(roomName, foulerId = null) {
         }
     }
 
+<<<<<<< Updated upstream
     for (const id in room.users) room.users[id].ready = false;
     
     io.to(roomName).emit('game_over', { 
         winners, 
         maxScore: bestResult === Infinity ? "없음" : bestResult, 
+=======
+    io.to(roomName).emit('game_over', {
+        winners,
+        winnerIds,
+        maxScore: bestResult,
+>>>>>>> Stashed changes
         mode,
         foulerId 
     });

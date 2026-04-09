@@ -138,7 +138,7 @@
     
     let currentGameMode = null;
     let avoidGameActive = false, renderLoopActive = false, avoidEnemies = [], playerPos = { x: 175, y: 175 };
-    let reactionStartTime = 0, reactionState = 'WAIT';
+    let reactionStartTime = 0, reactionState = 'DISABLED';
 
     const screens = document.querySelectorAll('.screen');
     const avoidCanvas = document.getElementById('avoidCanvas');
@@ -210,6 +210,7 @@
     }
 
     function handleReactionClick() {
+        if (reactionState === 'DISABLED') return;
         if (reactionState === 'WAIT') {
             reactionState = 'FOUL';
             reactionArea.className = 'rect-foul';
@@ -254,7 +255,7 @@
             reactionArea.style.display = 'flex';
             reactionArea.className = 'rect-wait';
             reactionArea.innerText = "대기...";
-            reactionState = 'WAIT';
+            reactionState = 'DISABLED';
         } else if(mode === 'CLICK') {
             const btn = document.getElementById('clickBtn');
             btn.style.display = 'block';
@@ -285,6 +286,8 @@
             avoidGameActive = true; // 이제 빨간 공들이 움직이기 시작함
         } else if (mode === 'REACTION') {
             document.getElementById('timer').style.display = 'none';
+            reactionArea.innerText = "초록색이 되면 탭!";
+            reactionState = 'WAIT'; // 🔥 카운트다운이 끝나면 'WAIT' 상태로 변경 (이때부터 부정출발 감지)
         }
 
         countdownInterval = setInterval(() => {
@@ -303,6 +306,7 @@
         }
     });
 
+<<<<<<< Updated upstream
     socket.on('game_over', ({ winners, maxScore, mode, foulerId }) => {
         clearInterval(countdownInterval);
         const pTitle = document.getElementById('popupTitle');
@@ -341,6 +345,21 @@
         
         resetUI(); // 화면 초기화
         isMyReady = false;
+=======
+    socket.on('room_bet_update', (bet) => {
+        document.getElementById('bigBetDisplay').innerText = `🔥 ${bet} 내기`;
+    });
+
+    socket.on('game_over', ({ winners, winnerIds, maxScore, mode, foulerId }) => {
+//        const isWinner = winners.some(w => w.trim() === myName.trim());
+
+            const isWinner = winnerIds.includes(socket.id);
+
+            lastResultData = { winners, maxScore, mode, foulerId, isWinner };
+            resultStep = 0;
+
+        showResultStep();
+>>>>>>> Stashed changes
     });
 
     // --- 공 피하기 엔진 ---
