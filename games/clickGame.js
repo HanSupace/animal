@@ -9,6 +9,7 @@ function handleClickAction(io, roomName, room, socketId) {
 
 function resolveClickWinner(room) {
     let winners = [];
+    let winnerIds = [];
     let maxScore = -1;
 
     for (const id in room.users) {
@@ -16,12 +17,14 @@ function resolveClickWinner(room) {
         if (user.score > maxScore) {
             maxScore = user.score;
             winners = [user.userName];
+            winnerIds = [id];
         } else if (user.score === maxScore) {
             winners.push(user.userName);
+            winnerIds.push(id);
         }
     }
 
-    return { winners, bestResult: maxScore };
+    return { winners, winnerIds, bestResult: maxScore };
 }
 
 module.exports = { handleClickAction, resolveClickWinner };

@@ -329,7 +329,14 @@
     });
 
     socket.on('game_over', ({ winners, winnerIds, maxScore, mode, foulerId }) => {
-        const isWinner = winnerIds && winnerIds.includes(socket.id);
+        
+        let isWinner = false;
+
+        if (winnerIds && Array.isArray(winnerIds)) {
+            isWinner = winnerIds.includes(socket.id);
+        } else {
+            isWinner = winners.some(w => w.trim() === myName.trim());
+        }
         lastResultData = { winners, maxScore, mode, foulerId, isWinner };
         resultStep = 0;
         showResultStep();
