@@ -103,10 +103,24 @@
 
     <div id="screen-game" class="screen">
         <h2 id="roomTitle" style="color: rgba(255,255,255,0.7); margin-top:0;"></h2>
+        <h1 id="bigBetDisplay" style="color:#ffeb3b; font-size:40px; margin:10px 0;"></h1>
         <div id="usersList">
             <h4 style="margin: 0 0 10px 0; color: var(--point-color); font-size: 22px;">참가자 목록</h4>
             <ul id="userUl"></ul>
         </div>
+
+        <div style="margin-bottom:15px;">
+            <select id="myBet" onchange="selectBet()" 
+                style="width:100%; padding:10px; border-radius:10px; font-size:16px;">
+                <option value="">내기 선택</option>
+                <option value="밥">🍚 밥 내기</option>
+                <option value="카페">☕ 카페 내기</option>
+                <option value="피방">🎮 피방 내기</option>
+                <option value="술">🍺 술 값 내기</option>
+                <option value="편의점">🏪 편의점 내기</option>
+            </select>
+        </div>
+
         <button id="readyBtn" onclick="toggleReady()">준비하기 (Ready)</button>
         
         <h2 id="gameNameDisplay"></h2>
@@ -183,6 +197,7 @@
     function resetUI() {
         // [FIX] countdownInterval도 여기서 클리어
         clearInterval(countdownInterval);
+        
 
         const readyBtn = document.getElementById('readyBtn');
         readyBtn.innerText = "준비하기 (Ready)";
@@ -197,7 +212,9 @@
         document.getElementById('timer').style.display = 'none';
         avoidCanvas.style.display = 'none';
         reactionArea.style.display = 'none';
-        
+
+        document.getElementById('bigBetDisplay').innerText = "내기를 선택하세요";
+
         avoidGameActive = false;
         renderLoopActive = false;
         reactionArea.className = 'rect-wait';
@@ -212,6 +229,11 @@
         btn.style.backgroundColor = isMyReady ? "var(--btn-orange)" : "var(--btn-green)";
         // [FIX] 준비 취소 시 글자색도 복구
         btn.style.color = "#3a0002";
+    }
+
+    function selectBet() {
+        const bet = document.getElementById('myBet').value;
+        socket.emit('select_bet', bet);
     }
 
     function sendClick() {
@@ -239,6 +261,8 @@
             const li = document.createElement('li');
             const status = u.ready ? '<span class="ready-status">[준비완료]</span>' : '<span class="not-ready">[대기중]</span>';
             const dead = u.isDead ? '<span style="color:gray;">(탈락)</span>' : '';
+            const bet = u.betType ? `💸${u.betType}` : '';
+
             li.innerHTML = `${status} ${u.userName} ${dead} <span style="float:right;"><b>${u.score === 9999 ? '대기' : (u.score === 99999 ? '실격' : u.score)}</b></span>`;
             ul.appendChild(li);
         }
@@ -310,6 +334,10 @@
             reactionArea.innerText = "지금 탭!!!";
             reactionStartTime = Date.now();
         }
+    });
+
+    socket.on('room_bet_update', (bet) => {
+        document.getElementById('bigBetDisplay').innerText = `🔥 ${bet} 내기`;
     });
 
     socket.on('game_over', ({ winners, maxScore, mode, foulerId }) => {
