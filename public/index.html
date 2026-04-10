@@ -303,13 +303,13 @@
         document.getElementById('avoidCanvas').style.display = 'none';
 
         if (tiedUserIds.includes(socket.id)) {
-            document.getElementById('gameNameDisplay').innerText = "무승부 재대결";
+            document.getElementById('gameNameDisplay').innerText = "⚔️ 무승부 재대결! ⚔️";
             reactionArea.style.display = 'flex';
             reactionArea.className = 'rect-wait';
             reactionArea.innerText = "초록색이 되면 탭!";
             reactionState = 'WAIT';
         } else {
-            document.getElementById('gameNameDisplay').innerText = "타이브레이커 진행 중...";
+            document.getElementById('gameNameDisplay').innerText = "⚔️ 타이브레이커 진행 중... ⚔️";
             reactionArea.style.display = 'flex';
             reactionArea.className = 'rect-foul';
             reactionArea.innerText = "승패 결정 중...";
@@ -360,7 +360,10 @@
             isWinner = winners.some(w => w.trim() === myName.trim());
         }
         
-        lastResultData = { winners: winners || [], maxScore, mode, isWinner, isFinal, finalWinner };
+        const isDraw = winners && winners.length > 1;
+        const isFouler = (mode === 'REACTION' && document.getElementById('reactionArea').className === 'rect-foul');
+
+        lastResultData = { winners: winners || [], maxScore, mode, isWinner, isFinal, finalWinner, isDraw, isFouler };
         resultStep = 0;
         showResultStep();
     });
@@ -433,22 +436,36 @@
                 if (data.isWinner) {
                     pTitle.innerText = "🏆 최종 우승! 🏆";
                     pTitle.className = "popup-title win-text";
-                    pDesc.innerText = `야르~ 야르~ 야르~`;
+                    pDesc.innerText = `야르~ 야르~ 야르~`; // 🔥 커스텀 승리 멘트!
                 } else {
-                    pTitle.innerText = "ㅋ 이걸 지네";
+                    pTitle.innerText = "ㅋ 이걸 지네"; // 🔥 커스텀 패배 멘트!
                     pTitle.className = "popup-title lose-text";
                     pDesc.innerText = `[${data.finalWinner}]님의 최종 우승입니다.`;
                 }
             } else {
-                if (data.isWinner) {
-                    pTitle.innerText = "라운드 승리!";
-                    pTitle.className = "popup-title win-text";
+                if (data.isFouler) {
+                    pTitle.innerText = "빨리 탭하기 긁?";
+                    pTitle.className = "popup-title lose-text";
+                } else if (data.isWinner) {
+                    if (data.isDraw) {
+                        pTitle.innerText = "무승부!"; 
+                        pTitle.className = "popup-title draw-text"; 
+                    } else {
+                        pTitle.innerText = "라운드 승리!";
+                        pTitle.className = "popup-title win-text";
+                    }
                 } else {
                     pTitle.innerText = "패배..";
                     pTitle.className = "popup-title lose-text";
                 }
                 
-                let desc = `우승자: ${data.winners.join(', ')}`;
+                let desc = "";
+                if (data.isDraw) {
+                    desc = "에휴... 한번 더"; // 🔥 커스텀 무승부 멘트!
+                } else {
+                    desc = `우승자: ${data.winners.join(', ')}`;
+                }
+                
                 if (data.mode === 'CLICK') desc += ` (${data.maxScore}회)`;
                 else if (data.mode === 'REACTION') desc += (data.maxScore === 9999 || data.maxScore === 99999 || data.maxScore === "없음" || data.maxScore === "실격" ? " (실패)" : ` (${data.maxScore}ms)`);
                 else if (data.mode === 'AVOID') desc += ` (생존)`;
@@ -456,17 +473,17 @@
                 pDesc.innerText = desc;
             }
         }
-        else if (resultStep === 1 && !data.isWinner) {
+        else if (resultStep === 1 && !data.isWinner && !data.isFinal) {
             pTitle.innerText = "긁?";
             pTitle.className = "popup-title lose-text";
             pDesc.innerText = "긁?";
         }
-        else if (resultStep === 2 && !data.isWinner) {
+        else if (resultStep === 2 && !data.isWinner && !data.isFinal) {
             pTitle.innerText = "긁?";
             pTitle.className = "popup-title lose-text";
             pDesc.innerText = "ㅋㅋㅋㅋ 진짜 긁?";
         }
-        else if (resultStep === 3 && !data.isWinner) {
+        else if (resultStep === 3 && !data.isWinner && !data.isFinal) {
             pTitle.innerText = "다시 ㄱ?";
             pTitle.className = "popup-title lose-text";
             pDesc.innerText = "쫄리면 말고~";
@@ -476,7 +493,7 @@
             resetUI();
 
             if (data && !data.isFinal) {
-                toggleReady();
+                toggleReady(); // 🔥 자동 다음 라운드 준비!
             }
             return;
         }
