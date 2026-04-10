@@ -440,6 +440,12 @@
             pTitle.innerText = "긁?";
             pTitle.className = "popup-title lose-text";
             pDesc.innerText = "ㅋㅋㅋㅋ 진짜 긁?";
+            resultStep === 3;
+        }
+        else if (resultStep === 3 && !data.isWinner) {
+            pTitle.innerText = "다시 ㄱ?";
+            pTitle.className = "popup-title lose-text";
+            pDesc.innerText = "쫄리면 말고~";
         }
         else {
             document.getElementById('resultPopup').style.display = 'none';
