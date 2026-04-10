@@ -75,6 +75,7 @@
         .popup-title { font-size: 70px; margin: 0 0 20px 0; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center; }
         .win-text { color: #ffeb3b; }
         .lose-text { color: #e57373; }
+        .draw-text { color: #4fc3f7; }
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
@@ -337,7 +338,10 @@
         } else {
             isWinner = winners.some(w => w.trim() === myName.trim());
         }
-        lastResultData = { winners, maxScore, mode, foulerId, isWinner };
+        const isDraw = winners.length > 1;
+        const isFouler = (mode === 'REACTION' && reactionState === 'FOUL');
+
+        lastResultData = { winners, maxScore, mode, foulerId, isWinner, isDraw };
         resultStep = 0;
         showResultStep();
     });
@@ -408,24 +412,31 @@
         const data = lastResultData;
 
         if (resultStep === 0) {
-            if (data.mode === 'REACTION' && data.foulerId) {
+            if (data.mode === 'REACTION' && data.isFouler) {
                 if (socket.id === data.foulerId) {
                     pTitle.innerText = "빨리 탭하기 긁?";
                     pTitle.className = "popup-title lose-text";
-                } else {
-                    pTitle.innerText = "승리!";
-                    pTitle.className = "popup-title win-text";
-                }
+                } 
             } else {
                 if (data.isWinner) {
-                    pTitle.innerText = "승리!";
-                    pTitle.className = "popup-title win-text";
+                    if (data.isDraw) {
+                        pTitle.innerText = "무승부!"; 
+                        pTitle.className = "popup-title draw-text"; 
+                    } else {
+                        pTitle.innerText = "승리!";
+                        pTitle.className = "popup-title win-text";
+                    }
                 } else {
                     pTitle.innerText = "패배..";
                     pTitle.className = "popup-title lose-text";
                 }
             }
-            let desc = `우승자: ${data.winners.join(', ')}`;
+            let desc = "";
+            if (data.isDraw) {
+                desc = "에휴... 한번 더";
+            } else {
+                desc = `우승자: ${data.winners.join(', ')}`;
+            }
             if (data.mode === 'CLICK') desc += ` (${data.maxScore}회)`;
             else if (data.mode === 'REACTION') desc += (data.maxScore === 9999 || data.maxScore === "실격" ? " (실패)" : ` (${data.maxScore}ms)`);
             else if (data.mode === 'AVOID') desc += ` (생존)`;

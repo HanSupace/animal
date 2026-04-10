@@ -14,10 +14,10 @@ function handleReactionResult(io, roomName, room, socketId, resultTime, endGame)
 
     if (resultTime === -1) {
         room.users[socketId].score = 99999;
-        endGame(roomName, socketId); // 부정 출발 즉시 종료
+        io.to(roomName).emit('update_users', room.users); 
     } else {
         room.users[socketId].score = resultTime;
-        endGame(roomName); // 정상 클릭 즉시 종료
+        endGame(roomName); 
     }
 }
 
@@ -28,8 +28,7 @@ function resolveReactionWinner(room) {
 
     for (const id in room.users) {
         const user = room.users[id];
-        if (user.score > 0 && user.score < bestResult) {
-            bestResult = user.score;
+        if (user.score > 0 && user.score < 9999 && user.score < bestResult) {            bestResult = user.score;
             winners = [user.userName];
             winnerIds = [id];
         } else if (user.score > 0 && user.score === bestResult) {
