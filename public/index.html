@@ -75,6 +75,7 @@
         .popup-title { font-size: 70px; margin: 0 0 20px 0; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center; }
         .win-text { color: #ffeb3b; }
         .lose-text { color: #e57373; }
+        .draw-text { color: #4fc3f7; }
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
@@ -232,13 +233,13 @@
     function handleReactionClick() {
         if (reactionState === 'DISABLED') return;
         if (reactionState === 'WAIT') {
-            reactionState = 'FOUL';
+            reactionState = 'DISABLED'; 
             reactionArea.className = 'rect-foul';
             reactionArea.innerText = "부정출발! (실격)";
             socket.emit('reaction_result', -1);
         } else if (reactionState === 'GO') {
             const diff = Date.now() - reactionStartTime;
-            reactionState = 'DONE';
+            reactionState = 'DISABLED';
             reactionArea.innerText = `${diff}ms!`;
             socket.emit('reaction_result', diff);
         }
@@ -251,7 +252,7 @@
             const li = document.createElement('li');
             const status = u.ready ? '<span class="ready-status">[준비완료]</span>' : '<span class="not-ready">[대기중]</span>';
             const dead = u.isDead ? '<span style="color:gray;">(탈락)</span>' : '';
-            li.innerHTML = `${status} ${u.userName} ${dead} <span style="float:right;"><b>${u.score === 9999 ? '대기' : (u.score === 99999 ? '실격' : u.score)}</b></span>`;
+            li.innerHTML = `${status} ${u.userName} ${dead} <span style="float:right; color:#ffeb3b;"><b>${u.winCount || 0}승</b></span>`;
             ul.appendChild(li);
         }
     });
@@ -293,6 +294,29 @@
         }, 1000);
     });
 
+    socket.on('tie_breaker_start', ({ tiedUserIds }) => {
+        clearInterval(countdownInterval);
+        avoidGameActive = false;
+
+        document.getElementById('timer').style.display = 'none';
+        document.getElementById('clickBtn').style.display = 'none';
+        document.getElementById('avoidCanvas').style.display = 'none';
+
+        if (tiedUserIds.includes(socket.id)) {
+            document.getElementById('gameNameDisplay').innerText = "무승부 재대결";
+            reactionArea.style.display = 'flex';
+            reactionArea.className = 'rect-wait';
+            reactionArea.innerText = "초록색이 되면 탭!";
+            reactionState = 'WAIT';
+        } else {
+            document.getElementById('gameNameDisplay').innerText = "타이브레이커 진행 중...";
+            reactionArea.style.display = 'flex';
+            reactionArea.className = 'rect-foul';
+            reactionArea.innerText = "승패 결정 중...";
+            reactionState = 'DISABLED';
+        }
+    });
+
     socket.on('game_start', ({ mode, duration }) => {
         const timeDisplay = document.getElementById('timeDisplay');
         let timeLeft = duration; timeDisplay.innerText = timeLeft;
@@ -328,16 +352,15 @@
         document.getElementById('bigBetDisplay').innerText = `🔥 ${bet} 내기`;
     });
 
-    socket.on('game_over', ({ winners, winnerIds, maxScore, mode, foulerId }) => {
-        
+    socket.on('game_over', ({ winners, winnerIds, maxScore, mode, isFinal, finalWinner }) => {
         let isWinner = false;
-
         if (winnerIds && Array.isArray(winnerIds)) {
             isWinner = winnerIds.includes(socket.id);
-        } else {
+        } else if (winners && Array.isArray(winners)) {
             isWinner = winners.some(w => w.trim() === myName.trim());
         }
-        lastResultData = { winners, maxScore, mode, foulerId, isWinner };
+        
+        lastResultData = { winners: winners || [], maxScore, mode, isWinner, isFinal, finalWinner };
         resultStep = 0;
         showResultStep();
     });
@@ -379,12 +402,14 @@
     
     avoidCanvas.addEventListener('mousemove', (e) => {
         const pos = getCanvasPos(e.clientX, e.clientY);
-        playerPos.x = pos.x; playerPos.y = pos.y;
+        playerPos.x = Math.max(0, Math.min(350, pos.x));
+        playerPos.y = Math.max(0, Math.min(350, pos.y));
     });
     avoidCanvas.addEventListener('touchmove', (e) => {
         e.preventDefault();
         const pos = getCanvasPos(e.touches[0].clientX, e.touches[0].clientY);
-        playerPos.x = pos.x; playerPos.y = pos.y;
+        playerPos.x = Math.max(0, Math.min(350, pos.x));
+        playerPos.y = Math.max(0, Math.min(350, pos.y));
     }, { passive: false });
 
     function sendMessage() {
@@ -404,28 +429,32 @@
         const data = lastResultData;
 
         if (resultStep === 0) {
-            if (data.mode === 'REACTION' && data.foulerId) {
-                if (socket.id === data.foulerId) {
-                    pTitle.innerText = "빨리 탭하기 긁?";
-                    pTitle.className = "popup-title lose-text";
-                } else {
-                    pTitle.innerText = "승리!";
+            if (data.isFinal) {
+                if (data.isWinner) {
+                    pTitle.innerText = "🏆 최종 우승! 🏆";
                     pTitle.className = "popup-title win-text";
+                    pDesc.innerText = `야르~ 야르~ 야르~`;
+                } else {
+                    pTitle.innerText = "ㅋ 이걸 지네";
+                    pTitle.className = "popup-title lose-text";
+                    pDesc.innerText = `[${data.finalWinner}]님의 최종 우승입니다.`;
                 }
             } else {
                 if (data.isWinner) {
-                    pTitle.innerText = "승리!";
+                    pTitle.innerText = "라운드 승리!";
                     pTitle.className = "popup-title win-text";
                 } else {
                     pTitle.innerText = "패배..";
                     pTitle.className = "popup-title lose-text";
                 }
+                
+                let desc = `우승자: ${data.winners.join(', ')}`;
+                if (data.mode === 'CLICK') desc += ` (${data.maxScore}회)`;
+                else if (data.mode === 'REACTION') desc += (data.maxScore === 9999 || data.maxScore === 99999 || data.maxScore === "없음" || data.maxScore === "실격" ? " (실패)" : ` (${data.maxScore}ms)`);
+                else if (data.mode === 'AVOID') desc += ` (생존)`;
+                
+                pDesc.innerText = desc;
             }
-            let desc = `우승자: ${data.winners.join(', ')}`;
-            if (data.mode === 'CLICK') desc += ` (${data.maxScore}회)`;
-            else if (data.mode === 'REACTION') desc += (data.maxScore === 9999 || data.maxScore === "실격" ? " (실패)" : ` (${data.maxScore}ms)`);
-            else if (data.mode === 'AVOID') desc += ` (생존)`;
-            pDesc.innerText = desc;
         }
         else if (resultStep === 1 && !data.isWinner) {
             pTitle.innerText = "긁?";
@@ -437,9 +466,18 @@
             pTitle.className = "popup-title lose-text";
             pDesc.innerText = "ㅋㅋㅋㅋ 진짜 긁?";
         }
+        else if (resultStep === 3 && !data.isWinner) {
+            pTitle.innerText = "다시 ㄱ?";
+            pTitle.className = "popup-title lose-text";
+            pDesc.innerText = "쫄리면 말고~";
+        }
         else {
             document.getElementById('resultPopup').style.display = 'none';
             resetUI();
+
+            if (data && !data.isFinal) {
+                toggleReady();
+            }
             return;
         }
         document.getElementById('resultPopup').style.display = 'flex';

@@ -23,17 +23,14 @@ const rooms = {};
 
 io.on('connection', (socket) => {
 
-    // 방 존재 확인
     socket.on('check_room', (roomCode, callback) => {
         callback(rooms.hasOwnProperty(roomCode));
     });
 
-    // 방 입장
     socket.on('join_room', ({ roomName, userName }) => {
         socket.join(roomName);
         socket.roomName = roomName;
 
-        // 방 없으면 생성
         if (!rooms[roomName]) {
             rooms[roomName] = {
                 users: {},
@@ -42,20 +39,21 @@ io.on('connection', (socket) => {
                 currentGameMode: null,
                 gameTimeout: null,
                 reactionTimer: null,
-                roomBet: null // 🔥 전체 내기
+                roomBet: null,
+                isTieBreaker: false,
+                tiedUsers: []
             };
         }
 
-        // 유저 추가
         rooms[roomName].users[socket.id] = { 
             userName, 
             ready: false, 
             score: 0, 
+            winCount: 0, // 🔥 승수 0으로 시작
             isDead: false,
-            betType: null // 🔥 개인 선택
+            betType: null 
         };
 
-        // 🔥 현재 내기 있으면 새로 들어온 사람에게 알려줌
         if (rooms[roomName].roomBet) {
             socket.emit('room_bet_update', rooms[roomName].roomBet);
         }
@@ -64,7 +62,6 @@ io.on('connection', (socket) => {
         io.to(roomName).emit('update_users', rooms[roomName].users);
     });
 
-    // 준비 버튼
     socket.on('toggle_ready', () => {
         const roomName = socket.roomName;
         if (!roomName || !rooms[roomName]) return;
@@ -82,74 +79,41 @@ io.on('connection', (socket) => {
         startRandomGame(io, rooms, roomName, endGame);
     });
 
-    // 클릭 게임
     socket.on('click_action', () => {
-        const roomName = socket.roomName;
-        handleClickAction(io, roomName, rooms[roomName], socket.id);
+        handleClickAction(io, socket.roomName, rooms[socket.roomName], socket.id);
     });
 
-    // 공 피하기
     socket.on('player_dead', () => {
-        const roomName = socket.roomName;
-        handlePlayerDead(io, roomName, rooms[roomName], socket.id, endGame);
+        handlePlayerDead(io, socket.roomName, rooms[socket.roomName], socket.id, endGame);
     });
 
-    // 반응속도
     socket.on('reaction_result', (resultTime) => {
-        const roomName = socket.roomName;
-        handleReactionResult(io, roomName, rooms[roomName], socket.id, resultTime, endGame);
+        handleReactionResult(io, socket.roomName, rooms[socket.roomName], socket.id, resultTime, endGame);
     });
 
-    // 채팅
     socket.on('send_message', (message) => {
-        const roomName = socket.roomName;
-        if (!roomName || !rooms[roomName]) return;
-
-        const userName = rooms[roomName].users[socket.id].userName;
-        io.to(roomName).emit('chat_message', { user: userName, text: message });
+        if (!socket.roomName || !rooms[socket.roomName]) return;
+        const userName = rooms[socket.roomName].users[socket.id].userName;
+        io.to(socket.roomName).emit('chat_message', { user: userName, text: message });
     });
 
-    // 🔥 내기 선택 (핵심 기능)
     socket.on('select_bet', (bet) => {
-        const roomName = socket.roomName;
-        if (!roomName || !rooms[roomName]) return;
-
-        const room = rooms[roomName];
-        const user = room.users[socket.id];
-        if (!user) return;
-
-        user.betType = bet;
-
-        // 🔥 마지막 선택을 방 전체 내기로 설정
+        const room = rooms[socket.roomName];
+        if (!room || !room.users[socket.id]) return;
+        room.users[socket.id].betType = bet;
         room.roomBet = bet;
-
-        io.to(roomName).emit('room_bet_update', room.roomBet);
-        io.to(roomName).emit('update_users', room.users);
+        io.to(socket.roomName).emit('room_bet_update', room.roomBet);
+        io.to(socket.roomName).emit('update_users', room.users);
     });
 
-    // 게임 선택 메시지 (optional)
-    socket.on('game_selected', (mode) => {
-        let gameName = "";
-
-        if (mode === "CLICK") gameName = "클릭 게임";
-        if (mode === "AVOID") gameName = "공 피하기 게임";
-        if (mode === "REACTION") gameName = "반응속도 게임";
-
-        io.to(socket.roomName).emit('chat_message', { user: '시스템', text: `🎮 랜덤 게임: ${gameName}` });
-    });
-
-    // 나가기
     socket.on('leave_room', () => handleUserLeave(socket));
     socket.on('disconnect', () => handleUserLeave(socket));
 });
 
-// 유저 나가기 처리
 function handleUserLeave(socket) {
     const roomName = socket.roomName;
-
     if (roomName && rooms[roomName] && rooms[roomName].users[socket.id]) {
         const userName = rooms[roomName].users[socket.id].userName;
-
         delete rooms[roomName].users[socket.id];
         socket.leave(roomName);
         socket.roomName = null;
@@ -165,7 +129,7 @@ function handleUserLeave(socket) {
     }
 }
 
-// 게임 종료
+// 🔥 게임 종료 및 승점 판정 로직
 function endGame(roomName, foulerId = null) {
     const room = rooms[roomName];
     if (!room || !room.isGameRunning) return;
@@ -177,24 +141,62 @@ function endGame(roomName, foulerId = null) {
     room.isGameRunning = false;
     room.currentGameMode = null;
 
-    // 🔥 충돌 해결: winnerIds를 받아옵니다.
     const { winners, winnerIds, bestResult } = resolveWinners(room, mode, foulerId);
 
-    for (const id in room.users) {
-        room.users[id].ready = false;
+    // 1. 무승부 시: 데스매치
+    if (winnerIds.length > 1) {
+        console.log(`[무승부 발생] ${winners.join(', ')} -> 데스매치 진입!`);
+        room.isTieBreaker = true;
+        room.tiedUsers = winnerIds;
+        room.currentGameMode = 'REACTION';
+        room.isGameRunning = true;
+
+        for (const id in room.users) room.users[id].score = 9999;
+
+        io.to(roomName).emit('update_users', room.users);
+        io.to(roomName).emit('tie_breaker_start', { tiedUserIds: winnerIds });
+
+        const { startReactionGame } = require('./games/reactionGame');
+        startReactionGame(io, roomName, room);
+
+        room.gameTimeout = setTimeout(() => { endGame(roomName); }, 15000);
+        return; 
     }
 
+    // 2. 단독 우승 시: 승점 추가
+    room.isTieBreaker = false;
+    room.tiedUsers = [];
+    let isFinal = false;
+    let finalWinner = null;
+
+    if (winnerIds.length === 1) {
+        const wid = winnerIds[0];
+        
+        // 확실하게 숫자 계산
+        room.users[wid].winCount = Number(room.users[wid].winCount || 0) + 1; 
+        
+        // 🔥 터미널에서 점수가 오르는 걸 직접 확인할 수 있습니다!
+        console.log(`✅ [승점 획득] ${room.users[wid].userName} 님이 1승 추가! (현재 총 ${room.users[wid].winCount}승)`);
+
+        if (room.users[wid].winCount >= 3) {
+            console.log(`🏆 [최종 우승] ${room.users[wid].userName} 3승 달성!!`);
+            isFinal = true;
+            finalWinner = room.users[wid].userName;
+        }
+    }
+
+    for (const id in room.users) room.users[id].ready = false;
+
     io.to(roomName).emit('game_over', {
-        winners,
-        winnerIds, // 🔥 필수! 클라이언트로 고유 ID 배열을 보내줍니다.
-        maxScore: bestResult,
-        mode,
-        foulerId
+        winners, winnerIds, maxScore: bestResult, mode, foulerId, isFinal, finalWinner
     });
 
+    if (isFinal) {
+        for (const id in room.users) room.users[id].winCount = 0; // 최종 승리 시 리셋
+    }
+    
     io.to(roomName).emit('update_users', room.users);
 }
 
-// 서버 실행
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`🚀 서버 실행 중: 포트 ${PORT}`));
