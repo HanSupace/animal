@@ -40,8 +40,6 @@ io.on('connection', (socket) => {
                 gameTimeout: null,
                 reactionTimer: null,
                 roomBet: null,
-                isTieBreaker: false,
-                tiedUsers: []
             };
         }
 
@@ -72,34 +70,7 @@ io.on('connection', (socket) => {
 
         io.to(roomName).emit('update_users', room.users);
 
-        if (room.isTieBreaker) {
-            // 🔥 타이브레이커 대기 중일 때: 무승부자들(tiedUsers)이 모두 창을 닫고 레디했는지 확인!
-            const allTiedReady = room.tiedUsers.every(id => room.users[id] && room.users[id].ready);
-            
-            if (allTiedReady && !room.isGameRunning && !room.isCountdown) {
-                room.isGameRunning = true;
-                
-                // 재대결 시작 전 깔끔하게 레디 상태 초기화
-                for (const id in room.users) {
-                    room.users[id].ready = false; 
-                }
-                io.to(roomName).emit('update_users', room.users);
-                
-                // 타이브레이커 화면으로 전환!
-                io.to(roomName).emit('tie_breaker_start', { tiedUserIds: room.tiedUsers });
-                
-                const { startReactionGame } = require('./games/reactionGame');
-                startReactionGame(io, roomName, room);
-                room.gameTimeout = setTimeout(() => { endGame(roomName); }, 15000);
-            }
-        } else {
-            // 🔥 일반 대기 중일 때: 2명 이상 레디하면 게임 시작
-            const userIds = Object.keys(room.users);
-            if (user.ready && userIds.length < 2) {
-                socket.emit('chat_message', { user: '시스템', text: '최소 2명이 있어야 게임이 시작됩니다.' });
-            }
-            startRandomGame(io, rooms, roomName, endGame);
-        }
+        startRandomGame(io, rooms, roomName, endGame);
     });
 
     socket.on('click_action', () => {
@@ -166,30 +137,7 @@ function endGame(roomName, foulerId = null) {
 
     const { winners, winnerIds, bestResult } = resolveWinners(room, mode, foulerId);
 
-    // 1. 무승부 시: 데스매치
-    if (winnerIds.length > 1) {
-        console.log(`[무승부 발생] ${winners.join(', ')} -> 데스매치 팝업 대기`);
-        room.isTieBreaker = true;
-        room.tiedUsers = winnerIds;
-        room.currentGameMode = 'REACTION'; // 다음 게임은 반응속도로 고정
-        
-        for (const id in room.users) {
-            room.users[id].score = 9999;
-            room.users[id].ready = false; // 레디 초기화
-        }
-
-        // 클라이언트로 전송하여 "무승부!" 팝업을 먼저 띄웁니다.
-        io.to(roomName).emit('game_over', {
-            winners, winnerIds, maxScore: bestResult, mode, foulerId, isFinal: false, finalWinner: null
-        });
-        
-        io.to(roomName).emit('update_users', room.users);
-        return; // 여기서 멈추고 유저들이 팝업창을 닫기를 기다립니다.
-    }
-
-    // 2. 단독 우승 시: 승점 추가
-    room.isTieBreaker = false;
-    room.tiedUsers = [];
+    // 단독 우승 시: 승점 추가
     let isFinal = false;
     let finalWinner = null;
 

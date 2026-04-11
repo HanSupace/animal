@@ -19,7 +19,7 @@
         }
 
         #reactionArea {
-            display: none; width: 100%; max-width: 350px; height: 350px; margin: 10px auto; border-radius: 20px;
+            display: none; width: 100%; max-width: 350px; height: 350px; margin: 0 auto; border-radius: 20px;
             justify-content: center; align-items: center; font-size: 32px; font-weight: bold; cursor: pointer; user-select: none; transition: background-color 0.1s;
         }
         .rect-wait { background-color: #ff5252; color: white; } 
@@ -52,17 +52,17 @@
         .active { display: block; animation: fadeIn 0.4s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        #gameNameDisplay { font-size: 36px; color: var(--point-color); margin-bottom: 10px; display: none; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); margin-top: 0;}
-        #usersList { background: rgba(0,0,0,0.5); padding: 15px; border-radius: 20px; text-align: left; margin-bottom: 20px; backdrop-filter: blur(5px);}
+        #gameNameDisplay { font-size: 36px; color: var(--point-color); margin: 0; display: none; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
+        #usersList { background: rgba(0,0,0,0.5); padding: 15px; border-radius: 20px; text-align: left; margin-bottom: 15px; backdrop-filter: blur(5px);}
         #userUl { list-style: none; padding: 0; margin: 0; }
         #userUl li { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 20px; }
         .ready-status { color: #81c784; }
         .not-ready { color: #e57373; }
 
-        #timer { font-size: 80px; color: var(--point-color); display: none; margin: 20px 0; animation: pulse 1s infinite; text-shadow: 0 0 20px rgba(255, 235, 59, 0.6);}
+        #timer { font-size: 80px; color: var(--point-color); display: none; margin: 0; animation: pulse 1s infinite; text-shadow: 0 0 20px rgba(255, 235, 59, 0.6);}
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
         
-        #clickBtn { font-size: 50px; padding: 40px; background: radial-gradient(circle, #ff5e5e 0%, #c62828 100%); display: none; border-radius: 30px; color: white; box-shadow: 0 10px 0px #8e0000; width:100%; }
+        #clickBtn { font-size: 50px; padding: 40px; background: radial-gradient(circle, #ff5e5e 0%, #c62828 100%); display: none; border-radius: 30px; color: white; box-shadow: 0 10px 0px #8e0000; width:100%; margin: 0; }
         #clickBtn:disabled { background: #555; box-shadow: 0 10px 0px #333; color: #aaa; cursor: not-allowed; }
 
         #avoidCanvas { display: none; background: #111; border: 2px solid var(--point-color); margin: 10px auto; border-radius: 15px; touch-action: none; width: 350px; height: 350px; max-width: 100%; }
@@ -78,7 +78,9 @@
         .draw-text { color: #4fc3f7; }
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-        /* 죽었을 때 나타날 오버레이 스타일 */
+        #readyBtn, #leaveBtn { transition: none; }
+        #readyBtn[style*="display: none"], #leaveBtn[style*="display: none"] { margin: 0 !important; padding: 0 !important; height: 0 !important; border: none !important; }
+        #myBet-wrapper[style*="display: none"] { margin: 0 !important; }
     #deadOverlay {
         display: none; 
         position: absolute; 
@@ -162,11 +164,14 @@
             </select>
         </div>
 
+        <div id="gameControlBtns">
         <button id="readyBtn" onclick="toggleReady()">준비하기 (Ready)</button>
+        <button id="leaveBtn" class="btn-sub btn-back" onclick="leaveRoom()">← 방 나가기</button>
+        </div>
         <h2 id="gameNameDisplay"></h2>
         <div id="timer"><span id="timeDisplay">3</span></div>
         <button id="clickBtn" onclick="sendClick()">클릭</button>
-        <div style="position: relative; width: 350px; height: 350px; margin: 10px auto;">
+        <div id="avoidWrapper" style="position: relative; width: 350px; height: 350px; margin: 0 auto; display: none;">
         <canvas id="avoidCanvas" width="350" height="350"></canvas>
         <div id="deadOverlay">
             <div class="spinner"></div>
@@ -256,19 +261,23 @@
         readyBtn.innerText = "준비하기 (Ready)";
         readyBtn.style.backgroundColor = "var(--btn-green)";
         readyBtn.style.color = "#3a0002";
-        readyBtn.style.display = 'inline-block';
-        document.getElementById('leaveBtn').style.display = 'inline-block';
-        document.getElementById('gameNameDisplay').style.display = 'none';
-        document.getElementById('clickBtn').style.display = 'none';
-        document.getElementById('timer').style.display = 'none';
+        document.getElementById('gameControlBtns').style.display = 'block';
+        document.getElementById('myBet').parentElement.style.display = 'block';
+        const nameDisp = document.getElementById('gameNameDisplay');
+        nameDisp.style.display = 'none'; nameDisp.style.margin = '0';
+        const clickBtn = document.getElementById('clickBtn');
+        clickBtn.style.display = 'none'; clickBtn.style.margin = '0';
+        const timerDiv = document.getElementById('timer');
+        timerDiv.style.display = 'none'; timerDiv.style.margin = '0';
         avoidCanvas.style.display = 'none';
-        reactionArea.style.display = 'none';
+        document.getElementById('avoidWrapper').style.display = 'none';
+        reactionArea.style.display = 'none'; reactionArea.style.margin = '0';
         document.getElementById('bigBetDisplay').innerText = "내기를 선택하세요";
         avoidGameActive = false;
         renderLoopActive = false;
         reactionArea.className = 'rect-wait';
         isMyReady = false;
-        document.getElementById('deadOverlay').style.display = 'none'; // 추가
+        document.getElementById('deadOverlay').style.display = 'none';
     }
 
     function toggleReady() {
@@ -318,32 +327,38 @@
 
     socket.on('game_selected', (mode) => {
         currentGameMode = mode;
-        document.getElementById('readyBtn').style.display = 'none';
-        document.getElementById('leaveBtn').style.display = 'none';
+        document.getElementById('gameControlBtns').style.display = 'none';
+        document.getElementById('myBet').parentElement.style.display = 'none';
         const title = document.getElementById('gameNameDisplay');
         if(mode === 'CLICK') title.innerText = "🔥 광클 대결! 🔥";
         else if(mode === 'AVOID') title.innerText = "🏃 공 피하기! 🏃";
         else if(mode === 'REACTION') title.innerText = "⚡ 반응속도 테스트! ⚡";
         title.style.display = 'block';
+        title.style.margin = '10px 0';
 
         if(mode === 'AVOID') {
+            document.getElementById('avoidWrapper').style.display = 'block';
             avoidCanvas.style.display = 'block';
             initAvoidGameSetup();
         } else if(mode === 'REACTION') {
             reactionArea.style.display = 'flex';
+            reactionArea.style.margin = '10px auto';
             reactionArea.className = 'rect-wait';
             reactionArea.innerText = "대기...";
             reactionState = 'DISABLED';
         } else if(mode === 'CLICK') {
             const btn = document.getElementById('clickBtn');
             btn.style.display = 'block';
+            btn.style.marginBottom = '15px';
             btn.disabled = true;
             btn.innerText = "대기...";
         }
     });
 
     socket.on('game_countdown', (count) => {
-        const timerDiv = document.getElementById('timer'); timerDiv.style.display = 'block';
+        const timerDiv = document.getElementById('timer');
+        timerDiv.style.display = 'block';
+        timerDiv.style.margin = '10px 0';
         let currentCount = count;
         document.getElementById('timeDisplay').innerText = currentCount;
         const intro = setInterval(() => {
@@ -351,29 +366,6 @@
             if (currentCount > 0) document.getElementById('timeDisplay').innerText = currentCount;
             else { document.getElementById('timeDisplay').innerText = "시작!"; clearInterval(intro); }
         }, 1000);
-    });
-
-    socket.on('tie_breaker_start', ({ tiedUserIds }) => {
-        clearInterval(countdownInterval);
-        avoidGameActive = false;
-
-        document.getElementById('timer').style.display = 'none';
-        document.getElementById('clickBtn').style.display = 'none';
-        document.getElementById('avoidCanvas').style.display = 'none';
-
-        if (tiedUserIds.includes(socket.id)) {
-            document.getElementById('gameNameDisplay').innerText = "⚔️ 무승부 재대결! ⚔️";
-            reactionArea.style.display = 'flex';
-            reactionArea.className = 'rect-wait';
-            reactionArea.innerText = "초록색이 되면 탭!";
-            reactionState = 'WAIT';
-        } else {
-            document.getElementById('gameNameDisplay').innerText = "⚔️ 타이브레이커 진행 중... ⚔️";
-            reactionArea.style.display = 'flex';
-            reactionArea.className = 'rect-foul';
-            reactionArea.innerText = "승패 결정 중...";
-            reactionState = 'DISABLED';
-        }
     });
 
     socket.on('game_start', ({ mode, duration }) => {
@@ -562,7 +554,7 @@
             document.getElementById('resultPopup').style.display = 'none';
             resetUI();
 
-            if (data && !data.isFinal) {
+            if (data && !data.isFinal && !data.isDraw) {
                 toggleReady(); // 🔥 자동 다음 라운드 준비!
             }
             return;
@@ -574,7 +566,9 @@
         resultStep++;
         showResultStep();
     }
-    function leaveRoom() { location.reload(); }
+    function leaveRoom() {
+        if (confirm("쫄?")) { location.reload(); }
+    }
     function goBackToLanding() { changeScreen('screen-landing'); }
 </script>
 </body>
