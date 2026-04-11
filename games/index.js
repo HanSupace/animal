@@ -74,6 +74,10 @@ function startRandomGame(io, rooms, roomName, endGame) {
         } else {
             io.to(roomName).emit('game_start', { mode: room.currentGameMode, duration });
 
+            if (room.currentGameMode === 'REACTION') {
+            startReactionGame(io, roomName, room);
+            }
+
             room.gameTimeout = setTimeout(() => {
                 endGame(roomName);
             }, duration * 1000);

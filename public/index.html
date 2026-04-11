@@ -131,7 +131,7 @@
         .btn-back { margin-top: 15px; border-color: rgba(255, 255, 255, 0.3); color: #ccc; font-size: 20px; }
         
         .screen { display: none; }
-        .active { display: block; animation: fadeIn 0.4s; }
+        .active  { display: block; animation: fadeIn 0.4s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         #gameNameDisplay { font-size: 36px; color: var(--point-color); margin: 0; display: none; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
@@ -139,12 +139,12 @@
         #userUl { list-style: none; padding: 0; margin: 0; }
         #userUl li { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 20px; }
         .ready-status { color: #81c784; }
-        .not-ready { color: #e57373; }
+        .not-ready    { color: #e57373; }
 
-        #timer { font-size: 80px; color: var(--point-color); display: none; margin: 0; animation: pulse 1s infinite; text-shadow: 0 0 20px rgba(255, 235, 59, 0.6);}
+        #timer { font-size: 80px; color: var(--point-color); display: none; margin: 0; animation: pulse 1s infinite; text-shadow: 0 0 20px rgba(255,235,59,0.6); }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
         
-        #clickBtn { font-size: 50px; padding: 40px; background: radial-gradient(circle, #ff5e5e 0%, #c62828 100%); display: none; border-radius: 30px; color: white; box-shadow: 0 10px 0px #8e0000; width:100%; margin: 0; }
+        #clickBtn { font-size: 50px; padding: 40px; background: radial-gradient(circle, #ff5e5e 0%, #c62828 100%); display: none; border-radius: 30px; color: white; box-shadow: 0 10px 0px #8e0000; width: 100%; margin: 0; }
         #clickBtn:disabled { background: #555; box-shadow: 0 10px 0px #333; color: #aaa; cursor: not-allowed; }
 
         #avoidCanvas { display: none; background: #111; border: 2px solid var(--point-color); margin: 10px auto; border-radius: 15px; touch-action: none; width: 350px; height: 350px; max-width: 100%; }
@@ -155,7 +155,7 @@
 
         #resultPopup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 80, 200, 0.95); z-index: 999; flex-direction: column; justify-content: center; align-items: center; animation: fadeIn 0.3s; }
         .popup-title { font-size: 70px; margin: 0 0 20px 0; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center; }
-        .win-text { color: #ffeb3b; }
+        .win-text  { color: #ffeb3b; }
         .lose-text { color: #e57373; }
         .draw-text { color: #4fc3f7; }
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -165,16 +165,16 @@
         #myBet-wrapper[style*="display: none"] { margin: 0 !important; }
 
         #deadOverlay {
-            display: none; 
-            position: absolute; 
-            top: 50%; left: 50%; 
-            transform: translate(-50%, -50%); 
-            width: 350px; height: 350px; 
-            background: rgba(0,0,0,0.85); 
-            border-radius: 15px; 
-            flex-direction: column; 
-            justify-content: center; align-items: center; 
-            z-index: 100; text-align: center; padding: 20px; 
+            display: none;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 350px; height: 350px;
+            background: rgba(0,0,0,0.85);
+            border-radius: 15px;
+            flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 100; text-align: center; padding: 20px;
             box-sizing: border-box; backdrop-filter: blur(4px);
         }
         .spinner {
@@ -186,14 +186,10 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #deadMsg { font-size: 26px; color: var(--point-color); line-height: 1.4; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); margin: 10px 0; }
 
-        /* ════════════════════════════════════════════
+        /* ════════════════════════════════
            MEMORY GAME STYLES
-           ════════════════════════════════════════════ */
-        #memoryWrapper {
-            display: none;
-            width: 100%;
-            margin: 10px 0;
-        }
+        ════════════════════════════════ */
+        #memoryWrapper { display: none; width: 100%; margin: 10px 0; }
 
         /* 게임 전체 제한 시간 */
         #memoryGameTimer {
@@ -209,122 +205,64 @@
             margin-bottom: 8px;
             border: 1px solid rgba(255,255,255,0.15);
         }
-        #memoryGameTimerVal {
-            font-size: 26px;
-            color: var(--point-color);
-            font-weight: bold;
-            min-width: 40px;
-            text-align: center;
-        }
-        #memoryGameTimer.urgent #memoryGameTimerVal {
-            color: #ff5252;
-            animation: pulse 0.6s infinite;
-        }
+        #memoryGameTimerVal { font-size: 26px; color: var(--point-color); font-weight: bold; min-width: 40px; text-align: center; }
+        #memoryGameTimer.urgent #memoryGameTimerVal { color: #ff5252; animation: pulse 0.6s infinite; }
 
         /* 내 턴 10초 카운트다운 */
         #memoryTurnTimer {
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-size: 18px;
-            color: #fff;
-            background: rgba(255,235,59,0.15);
-            border: 1px solid rgba(255,235,59,0.35);
-            border-radius: 10px;
-            padding: 6px 14px;
-            margin-bottom: 8px;
+            display: none; align-items: center; justify-content: center; gap: 8px;
+            font-size: 18px; color: #fff;
+            background: rgba(255,235,59,0.15); border: 1px solid rgba(255,235,59,0.35);
+            border-radius: 10px; padding: 6px 14px; margin-bottom: 8px;
         }
-        #memoryTurnTimerVal {
-            font-size: 26px;
-            color: var(--point-color);
-            font-weight: bold;
-            min-width: 24px;
-            text-align: center;
-        }
-        #memoryTurnTimer.urgent {
-            background: rgba(255,82,82,0.2);
-            border-color: rgba(255,82,82,0.5);
-        }
-        #memoryTurnTimer.urgent #memoryTurnTimerVal {
-            color: #ff5252;
-            animation: pulse 0.4s infinite;
-        }
+        #memoryTurnTimerVal { font-size: 26px; color: var(--point-color); font-weight: bold; min-width: 24px; text-align: center; }
+        #memoryTurnTimer.urgent { background: rgba(255,82,82,0.2); border-color: rgba(255,82,82,0.5); }
+        #memoryTurnTimer.urgent #memoryTurnTimerVal { color: #ff5252; animation: pulse 0.4s infinite; }
 
         /* 턴 표시 배너 - moved above */
 
         /* 5초 공개 카운트다운 */
         #memoryRevealTimer {
-            font-size: 18px;
-            color: #fff;
-            background: rgba(255,235,59,0.18);
-            border-radius: 10px;
-            padding: 6px 12px;
-            margin-bottom: 8px;
-            display: none;
+            font-size: 18px; color: #fff;
+            background: rgba(255,235,59,0.18); border-radius: 10px;
+            padding: 6px 12px; margin-bottom: 8px; display: none;
         }
 
         /* 4×4 카드 그리드 */
         #memoryGrid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            width: 100%;
-            max-width: 360px;
-            margin: 0 auto;
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 8px; width: 100%; max-width: 360px; margin: 0 auto;
         }
 
-        /* ── 개별 카드 ── */
-        .mg-card {
-            aspect-ratio: 1;
-            perspective: 600px;
-            cursor: pointer;
-        }
-        .mg-card.matched,
-        .mg-card.no-click {
-            cursor: default;
-            pointer-events: none;
-        }
-
+        .mg-card { aspect-ratio: 1; perspective: 600px; cursor: pointer; }
+        .mg-card.matched, .mg-card.no-click { cursor: default; pointer-events: none; }
         .mg-card__inner {
-            position: relative;
-            width: 100%; height: 100%;
+            position: relative; width: 100%; height: 100%;
             transform-style: preserve-3d;
             transition: transform 0.55s cubic-bezier(.4,0,.2,1);
             border-radius: 10px;
         }
-        .mg-card.face-up .mg-card__inner   { transform: rotateY(180deg); }
-        .mg-card.matched  .mg-card__inner   { transform: rotateY(180deg); }
+        .mg-card.face-up .mg-card__inner  { transform: rotateY(180deg); }
+        .mg-card.matched  .mg-card__inner  { transform: rotateY(180deg); }
 
-        .mg-card__back,
-        .mg-card__front {
-            position: absolute;
-            inset: 0;
-            border-radius: 10px;
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .mg-card__back, .mg-card__front {
+            position: absolute; inset: 0; border-radius: 10px;
+            backface-visibility: hidden; -webkit-backface-visibility: hidden;
+            display: flex; align-items: center; justify-content: center;
             font-size: clamp(1.2rem, 6vw, 2rem);
         }
         .mg-card__back {
-            background: rgba(0,0,0,0.55);
-            border: 2px solid rgba(255,235,59,0.3);
-            font-size: clamp(1rem, 5vw, 1.5rem);
-            color: rgba(255,255,255,0.25);
+            background: rgba(0,0,0,0.55); border: 2px solid rgba(255,235,59,0.3);
+            font-size: clamp(1rem, 5vw, 1.5rem); color: rgba(255,255,255,0.25);
         }
         .mg-card__back::after { content: '❓'; }
         .mg-card__front {
             background: linear-gradient(135deg, #fff 0%, #f0e8ff 100%);
-            border: 2px solid rgba(200,160,255,0.4);
-            transform: rotateY(180deg);
+            border: 2px solid rgba(200,160,255,0.4); transform: rotateY(180deg);
         }
-        /* 매칭 완료 글로우 */
         .mg-card.matched .mg-card__front {
             background: linear-gradient(135deg, #e8fff0, #b2ffd0);
-            border-color: #00e676;
-            box-shadow: 0 0 14px rgba(0,230,118,.5);
+            border-color: #00e676; box-shadow: 0 0 14px rgba(0,230,118,.5);
             animation: mgMatchPop .4s ease;
         }
         @keyframes mgMatchPop {
@@ -334,13 +272,8 @@
         }
 
         /* 내 턴 하이라이트 */
-        #memoryGrid.my-turn .mg-card:not(.matched):not(.face-up) {
-            border-color: var(--point-color);
-            box-shadow: 0 0 8px rgba(255,235,59,.35);
-        }
-        #memoryGrid.my-turn .mg-card:not(.matched):not(.face-up):hover .mg-card__back {
-            background: rgba(255,235,59,.12);
-        }
+        #memoryGrid.my-turn .mg-card:not(.matched):not(.face-up) { border-color: var(--point-color); box-shadow: 0 0 8px rgba(255,235,59,.35); }
+        #memoryGrid.my-turn .mg-card:not(.matched):not(.face-up):hover .mg-card__back { background: rgba(255,235,59,.12); }
 
         /* 점수판 */
         #memoryScoreBoard {
@@ -369,7 +302,6 @@
         .mg-score-name { font-size: 13px; color: rgba(255,255,255,0.6); }
         .mg-score-val  { font-size: 26px; color: var(--point-color); font-weight: bold; }
         .mg-score-item.active-player .mg-score-name { color: var(--point-color); }
-        /* ════════════════════════════════════════════ */
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
 </head>
@@ -461,14 +393,8 @@
 
         <!-- ══ MEMORY GAME UI ══ -->
         <div id="memoryWrapper">
-            <!-- 게임 전체 제한 시간 -->
-            <div id="memoryGameTimer">
-                ⏱ 남은 시간 <span id="memoryGameTimerVal">--</span>초
-            </div>
-            <!-- 내 턴 10초 카운트다운 -->
-            <div id="memoryTurnTimer">
-                🕐 내 턴 <span id="memoryTurnTimerVal">10</span>초
-            </div>
+            <div id="memoryGameTimer">⏱ 남은 시간 <span id="memoryGameTimerVal">--</span>초</div>
+            <div id="memoryTurnTimer">🕐 내 턴 <span id="memoryTurnTimerVal">10</span>초</div>
             <div id="memoryTurnBanner">잠시 후 게임이 시작됩니다...</div>
             <div id="memoryRevealTimer">👀 카드를 외우세요! <span id="memoryRevealCount">5</span>초</div>
             <div id="memoryGrid"></div>
@@ -485,16 +411,15 @@
     </div>
 </div>
 
+<!-- 결과 팝업 -->
 <div id="resultPopup">
     <h1 id="popupTitle" class="popup-title"></h1>
     <p id="popupDesc" class="popup-desc" style="font-size:24px; color:white; margin-bottom:40px;"></p>
     <button class="btn-main" style="width: 200px;" onclick="closePopup()">확인</button>
 </div>
 
-<div id="leavePopup" style="
-    display:none; position: fixed; top:0; left:0;
-    width:100%; height:100%; background: rgba(0,0,0,0.85);
-    z-index:999; justify-content:center; align-items:center; flex-direction:column;">
+<!-- 방 나가기 팝업 -->
+<div id="leavePopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:999; justify-content:center; align-items:center; flex-direction:column;">
     <h1 id="leaveTitle" class="popup-title"></h1>
     <p id="leaveDesc" class="popup-desc" style="font-size:24px; color:white; margin-bottom:40px;"></p>
     <div style="display:flex; gap:10px;">
@@ -509,7 +434,11 @@
     // ════════════════════════════════════════════
     //  기본 변수
     // ════════════════════════════════════════════
+    // ════════════════════════════════════════════
+    //  기본 변수
+    // ════════════════════════════════════════════
     const socket = io();
+
 
     const deadMessages = [
         "괜찮아요 게임 좀 못할 수도 있죠. 마우스 쥐는 법 부터 다시 배워 볼까요?",
@@ -522,19 +451,28 @@
 
     let myName = "", isMyReady = false, countdownInterval;
     let resultStep = 0, lastResultData = null, currentBet = null;
+
+    let myName = "", isMyReady = false, countdownInterval;
+    let resultStep = 0, lastResultData = null, currentBet = null;
     let currentGameMode = null;
     let avoidGameActive = false, renderLoopActive = false, avoidEnemies = [], playerPos = { x: 175, y: 175 };
     let reactionStartTime = 0, reactionState = 'DISABLED';
     let isFouler = false;
 
     const screens     = document.querySelectorAll('.screen');
+    const screens     = document.querySelectorAll('.screen');
     const avoidCanvas = document.getElementById('avoidCanvas');
+    const avoidCtx    = avoidCanvas.getContext('2d');
     const avoidCtx    = avoidCanvas.getContext('2d');
     const reactionArea = document.getElementById('reactionArea');
 
     // 드래그 선택 방지
+    // 드래그 선택 방지
     document.addEventListener('dragstart', e => e.preventDefault());
 
+    // ════════════════════════════════════════════
+    //  화면 전환
+    // ════════════════════════════════════════════
     // ════════════════════════════════════════════
     //  화면 전환
     // ════════════════════════════════════════════
@@ -552,6 +490,7 @@
 
     function createRoom() { performJoin(Math.random().toString(36).substring(2, 6).toUpperCase()); }
 
+
     function showJoinInput() {
         const area = document.getElementById('join-input-area');
         area.style.display = area.style.display === 'block' ? 'none' : 'block';
@@ -563,10 +502,13 @@
         socket.emit('check_room', code, (exists) => {
             if (exists) performJoin(code);
             else alert("존재하지 않는 방 코드입니다.");
+            if (exists) performJoin(code);
+            else alert("존재하지 않는 방 코드입니다.");
         });
     }
 
     function performJoin(code) {
+        document.getElementById('chatBox').innerHTML = '';
         document.getElementById('chatBox').innerHTML = '';
         socket.emit('join_room', { roomName: code, userName: myName });
         document.getElementById('roomTitle').innerText = `ROOM : ${code}`;
@@ -578,29 +520,42 @@
     // ════════════════════════════════════════════
     //  UI 초기화
     // ════════════════════════════════════════════
+    function goBackToLanding() { changeScreen('screen-landing'); }
+
+    // ════════════════════════════════════════════
+    //  UI 초기화
+    // ════════════════════════════════════════════
     function resetUI() {
         clearInterval(countdownInterval);
         isFouler = false;
+
 
         const readyBtn = document.getElementById('readyBtn');
         readyBtn.innerText = "준비하기 (Ready)";
         readyBtn.style.backgroundColor = "var(--btn-green)";
         readyBtn.style.color = "#3a0002";
 
+
         document.getElementById('gameControlBtns').style.display = 'block';
         document.getElementById('myBet').parentElement.style.display = currentBet ? 'none' : 'block';
+
 
         const nameDisp = document.getElementById('gameNameDisplay');
         nameDisp.style.display = 'none'; nameDisp.style.margin = '0';
 
+
         const clickBtn = document.getElementById('clickBtn');
         clickBtn.style.display = 'none'; clickBtn.style.margin = '0';
+
 
         const timerDiv = document.getElementById('timer');
         timerDiv.style.display = 'none'; timerDiv.style.margin = '0';
 
+
         avoidCanvas.style.display = 'none';
         document.getElementById('avoidWrapper').style.display = 'none';
+        document.getElementById('deadOverlay').style.display = 'none';
+
         document.getElementById('deadOverlay').style.display = 'none';
 
         reactionArea.style.display = 'none'; reactionArea.style.margin = '0';
@@ -609,14 +564,21 @@
         reactionArea.className = 'rect-wait';
         reactionState = 'DISABLED';
 
+        reactionArea.className = 'rect-wait';
+        reactionState = 'DISABLED';
+
         avoidGameActive = false;
         renderLoopActive = false;
         isMyReady = false;
 
         // 메모리 게임 초기화
+        // 메모리 게임 초기화
         memoryReset();
     }
 
+    // ════════════════════════════════════════════
+    //  준비 / 내기
+    // ════════════════════════════════════════════
     // ════════════════════════════════════════════
     //  준비 / 내기
     // ════════════════════════════════════════════
@@ -637,13 +599,19 @@
     // ════════════════════════════════════════════
     //  소켓 이벤트 — 유저 목록 / 내기
     // ════════════════════════════════════════════
+    // ════════════════════════════════════════════
+    //  소켓 이벤트 — 유저 목록 / 내기
+    // ════════════════════════════════════════════
     socket.on('update_users', (users) => {
+        const ul = document.getElementById('userUl');
+        ul.innerHTML = '';
         const ul = document.getElementById('userUl');
         ul.innerHTML = '';
         for (const id in users) {
             const u = users[id];
             const li = document.createElement('li');
             const status = u.ready ? '<span class="ready-status">[준비완료]</span>' : '<span class="not-ready">[대기중]</span>';
+            const dead   = u.isDead ? '<span style="color:gray;">(탈락)</span>' : '';
             const dead   = u.isDead ? '<span style="color:gray;">(탈락)</span>' : '';
             li.innerHTML = `${status} ${u.userName} ${dead} <span style="float:right; color:#ffeb3b;"><b>${u.winCount || 0}승</b></span>`;
             ul.appendChild(li);
@@ -667,12 +635,30 @@
     // ════════════════════════════════════════════
     //  소켓 이벤트 — 게임 흐름
     // ════════════════════════════════════════════
+    socket.on('room_bet_update', (bet) => {
+        currentBet = bet;
+        const betWrapper = document.getElementById('myBet').parentElement;
+        if (bet) {
+            document.getElementById('bigBetDisplay').innerText = `🔥 ${bet} 내기`;
+            betWrapper.style.display = 'none';
+        } else {
+            document.getElementById('bigBetDisplay').innerText = '';
+            document.getElementById('myBet').value = '';
+            betWrapper.style.display = 'block';
+        }
+    });
+
+    // ════════════════════════════════════════════
+    //  소켓 이벤트 — 게임 흐름
+    // ════════════════════════════════════════════
     socket.on('game_selected', (mode) => {
         currentGameMode = mode;
         document.getElementById('gameControlBtns').style.display = 'none';
         document.getElementById('myBet').parentElement.style.display = 'none';
 
+
         const title = document.getElementById('gameNameDisplay');
+        if      (mode === 'CLICK')    title.innerText = "🔥 광클 대결! 🔥";
         if      (mode === 'CLICK')    title.innerText = "🔥 광클 대결! 🔥";
         else if (mode === 'AVOID')    title.innerText = "🏃 공 피하기! 🏃";
         else if (mode === 'REACTION') title.innerText = "⚡ 반응속도 테스트! ⚡";
@@ -690,6 +676,7 @@
             reactionArea.style.margin = '0';
             reactionArea.className = 'rect-wait';
             reactionArea.innerText = "대기...";
+            // ✅ 여기서는 DISABLED 유지 — game_start에서 WAIT으로 바꿈
             // ✅ 여기서는 DISABLED 유지 — game_start에서 WAIT으로 바꿈
             reactionState = 'DISABLED';
             isFouler = false;
@@ -723,16 +710,24 @@
         let timeLeft = duration;
         timeDisplay.innerText = timeLeft;
 
+        let timeLeft = duration;
+        timeDisplay.innerText = timeLeft;
+
         if (mode === 'CLICK') {
             const btn = document.getElementById('clickBtn');
+            btn.disabled = false;
+            btn.innerText = '클릭!';
+
             btn.disabled = false;
             btn.innerText = '클릭!';
 
         } else if (mode === 'AVOID') {
             avoidGameActive = true;
 
+
         } else if (mode === 'REACTION') {
             document.getElementById('timer').style.display = 'none';
+            // ✅ game_start 시점에 WAIT으로 전환 (reaction_go 수신 준비)
             // ✅ game_start 시점에 WAIT으로 전환 (reaction_go 수신 준비)
             reactionState = 'WAIT';
             isFouler = false;
@@ -740,8 +735,11 @@
             reactionArea.innerText = "초록색이 되면 탭!";
             reactionArea.style.display = 'flex';
 
+            reactionArea.style.display = 'flex';
+
         } else if (mode === 'MEMORY') {
             document.getElementById('timer').style.display = 'none';
+            // 게임 전체 제한 시간 카운트다운 (공개 5초 이후부터)
             // 게임 전체 제한 시간 카운트다운 (공개 5초 이후부터)
             let gameTimeLeft = duration;
             const gameTimerVal = document.getElementById('memoryGameTimerVal');
@@ -753,11 +751,19 @@
                     gameTimerVal.innerText = gameTimeLeft;
                     if (gameTimeLeft <= 30) gameTimerBox.classList.add('urgent');
                     if (gameTimeLeft <= 0) { clearInterval(memoryGameTimerInterval); memoryGameTimerInterval = null; }
+                    if (gameTimeLeft <= 0) { clearInterval(memoryGameTimerInterval); memoryGameTimerInterval = null; }
                 }, 1000);
+            }, 5000); // 공개 5초 후 시작
+            return;
             }, 5000); // 공개 5초 후 시작
             return;
         }
 
+        countdownInterval = setInterval(() => {
+            timeLeft--;
+            if (mode !== 'REACTION') timeDisplay.innerText = timeLeft;
+            if (timeLeft <= 0) { clearInterval(countdownInterval); avoidGameActive = false; }
+        }, 1000);
         countdownInterval = setInterval(() => {
             timeLeft--;
             if (mode !== 'REACTION') timeDisplay.innerText = timeLeft;
@@ -770,11 +776,18 @@
     // ════════════════════════════════════════════
 
     // ✅ reaction_go: WAIT이면 GO로, DISABLED이면 WAIT 거쳐 GO로 (타이밍 방어)
+    // ════════════════════════════════════════════
+    //  소켓 이벤트 — 반응속도 게임
+    // ════════════════════════════════════════════
+
+    // ✅ reaction_go: WAIT이면 GO로, DISABLED이면 WAIT 거쳐 GO로 (타이밍 방어)
     socket.on('reaction_go', () => {
+        if (reactionState === 'DISABLED') reactionState = 'WAIT';
         if (reactionState === 'DISABLED') reactionState = 'WAIT';
         if (reactionState === 'WAIT') {
             reactionState = 'GO';
             reactionArea.className = 'rect-go';
+            reactionArea.style.display = 'flex';
             reactionArea.style.display = 'flex';
             reactionArea.innerText = "지금 탭!!!";
             reactionStartTime = Date.now();
@@ -789,6 +802,7 @@
         reactionArea.innerText = "탈락 😵";
         document.getElementById('reactionDeadMsg').innerText = "탈락! 😵\n결과를 기다리는 중...";
         document.getElementById('reactionDeadOverlay').style.display = 'flex';
+        document.getElementById('reactionDeadOverlay').style.display = 'flex';
     });
 
     socket.on('reaction_eliminated', () => {
@@ -797,8 +811,22 @@
         reactionArea.innerText = "탈락 😵";
         document.getElementById('reactionDeadMsg').innerText = "탈락! 😵\n결과를 기다리는 중...";
         document.getElementById('reactionDeadOverlay').style.display = 'flex';
+        document.getElementById('reactionDeadOverlay').style.display = 'flex';
     });
 
+    function handleReactionClick() {
+        if (reactionState === 'DISABLED') return;
+        if (reactionState === 'WAIT') {
+            reactionState = 'DISABLED';
+            reactionArea.className = 'rect-foul';
+            reactionArea.innerText = "부정출발! (실격)";
+            isFouler = true;
+            socket.emit('reaction_result', -1);
+        } else if (reactionState === 'GO') {
+            const diff = Date.now() - reactionStartTime;
+            reactionState = 'DISABLED';
+            reactionArea.innerText = `${diff}ms!`;
+            socket.emit('reaction_result', diff);
     function handleReactionClick() {
         if (reactionState === 'DISABLED') return;
         if (reactionState === 'WAIT') {
@@ -819,6 +847,12 @@
     //  소켓 이벤트 — 게임 종료
     // ════════════════════════════════════════════
     socket.on('game_over', ({ winners, winnerIds, maxScore, mode, isFinal, finalWinner, isTimeout }) => {
+    }
+
+    // ════════════════════════════════════════════
+    //  소켓 이벤트 — 게임 종료
+    // ════════════════════════════════════════════
+    socket.on('game_over', ({ winners, winnerIds, maxScore, mode, isFinal, finalWinner, isTimeout }) => {
         let isWinner = false;
         if (winnerIds && Array.isArray(winnerIds)) {
             isWinner = winnerIds.includes(socket.id);
@@ -827,6 +861,7 @@
         }
         const isDraw = winners && winners.length > 1;
         lastResultData = { winners: winners || [], maxScore, mode, isWinner, isFinal, finalWinner, isDraw, isFouler, isTimeout };
+        lastResultData = { winners: winners || [], maxScore, mode, isWinner, isFinal, finalWinner, isDraw, isFouler, isTimeout };
         resultStep = 0;
         showResultStep();
     });
@@ -834,8 +869,13 @@
     // ════════════════════════════════════════════
     //  결과 팝업
     // ════════════════════════════════════════════
+    // ════════════════════════════════════════════
+    //  결과 팝업
+    // ════════════════════════════════════════════
     function showResultStep() {
         const pTitle = document.getElementById('popupTitle');
+        const pDesc  = document.getElementById('popupDesc');
+        const data   = lastResultData;
         const pDesc  = document.getElementById('popupDesc');
         const data   = lastResultData;
 
@@ -845,6 +885,7 @@
                     pTitle.innerText = "🏆 최종 우승! 🏆";
                     pTitle.className = "popup-title win-text";
                     pDesc.innerText = "야르~ 야르~ 야르~";
+                    pDesc.innerText = "야르~ 야르~ 야르~";
                 } else {
                     pTitle.innerText = "ㅋ 이걸 지네";
                     pTitle.className = "popup-title lose-text";
@@ -852,9 +893,16 @@
                 }
             } else {
                 // ✅ isFouler → isDraw → isWinner 순서 중요
+                // ✅ isFouler → isDraw → isWinner 순서 중요
                 if (data.isFouler) {
                     pTitle.innerText = "빨리 탭하기 긁?";
                     pTitle.className = "popup-title lose-text";
+                } else if (data.isDraw) {
+                    pTitle.innerText = "무승부!";
+                    pTitle.className = "popup-title draw-text";
+                } else if (data.isWinner) {
+                    pTitle.innerText = "라운드 승리!";
+                    pTitle.className = "popup-title win-text";
                 } else if (data.isDraw) {
                     pTitle.innerText = "무승부!";
                     pTitle.className = "popup-title draw-text";
@@ -875,9 +923,28 @@
                 } else {
                     desc = "에휴... 한번 더";
                 }
+            if (data.isDraw && !data.isFouler) {
+                // ✅ 반응속도 무승부 (아무도 탭 안 함) vs 일반 무승부
+                if (data.mode === 'REACTION' && (!data.winners || data.winners.length === 0 || data.maxScore === 9999)) {
+                    desc = "시간 내에 아무도 탭하지 않았습니다 😅";
+                } else {
+                    desc = "에휴... 한번 더";
+                }
             } else {
                 desc = `우승자: ${data.winners.join(', ')}`;
             }
+
+            if      (data.mode === 'CLICK')    desc += ` (${data.maxScore}회)`;
+            else if (data.mode === 'REACTION' && !data.isDraw) {
+                desc += (data.maxScore === 9999 || data.maxScore === 99999 || data.maxScore === "없음" || data.maxScore === "실격")
+                    ? " (실패)" : ` (${data.maxScore}ms)`;
+            }
+            else if (data.mode === 'AVOID')    desc += ` (생존)`;
+            else if (data.mode === 'MEMORY') {
+                if (data.isTimeout) desc = `⏰ 시간 초과! ` + desc + ` (${data.maxScore}쌍)`;
+                else desc += ` (${data.maxScore}쌍)`;
+            }
+
 
             if      (data.mode === 'CLICK')    desc += ` (${data.maxScore}회)`;
             else if (data.mode === 'REACTION' && !data.isDraw) {
@@ -915,6 +982,9 @@
     // ════════════════════════════════════════════
     //  방 나가기 팝업 ✅
     // ════════════════════════════════════════════
+    // ════════════════════════════════════════════
+    //  방 나가기 팝업 ✅
+    // ════════════════════════════════════════════
     function leaveRoom() {
         document.getElementById('leaveTitle').innerText = "쫄?";
         document.getElementById('leaveTitle').className = "popup-title lose-text";
@@ -927,8 +997,77 @@
         document.getElementById('cancelLeaveBtn').onclick = () => {
             document.getElementById('leavePopup').style.display = 'none';
         };
+        document.getElementById('confirmLeaveBtn').onclick = () => {
+            socket.emit('leave_room');
+            location.reload();
+        };
+        document.getElementById('cancelLeaveBtn').onclick = () => {
+            document.getElementById('leavePopup').style.display = 'none';
+        };
     }
 
+    // ════════════════════════════════════════════
+    //  공 피하기 게임
+    // ════════════════════════════════════════════
+    function getCanvasPos(clientX, clientY) {
+        const rect = avoidCanvas.getBoundingClientRect();
+        const scaleX = avoidCanvas.width / rect.width;
+        const scaleY = avoidCanvas.height / rect.height;
+        return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+    }
+
+    function initAvoidGameSetup() {
+        renderLoopActive = true; avoidGameActive = false;
+        avoidEnemies = []; playerPos = { x: 175, y: 175 };
+        for (let i = 0; i < 8; i++) {
+            avoidEnemies.push({ x: Math.random()*350, y: Math.random()*350, dx: (Math.random()-0.5)*7, dy: (Math.random()-0.5)*7, r: 6 });
+        }
+        requestAnimationFrame(updateAvoidFrame);
+    }
+
+    function updateAvoidFrame() {
+        if (!renderLoopActive) return;
+        avoidCtx.clearRect(0, 0, 350, 350);
+
+        // ✅ 플레이어 캔버스 밖 못 나가게 클램핑
+        playerPos.x = Math.max(8, Math.min(342, playerPos.x));
+        playerPos.y = Math.max(8, Math.min(342, playerPos.y));
+
+        avoidCtx.beginPath(); avoidCtx.arc(playerPos.x, playerPos.y, 8, 0, Math.PI*2); avoidCtx.fillStyle = '#2196f3'; avoidCtx.fill();
+        avoidCtx.fillStyle = '#ff5252';
+
+        avoidEnemies.forEach(en => {
+            if (avoidGameActive) {
+                en.x += en.dx; en.y += en.dy;
+                // ✅ 적 공도 반지름 기준 정확히 튕기도록
+                if (en.x - en.r < 0)   { en.x = en.r;       en.dx =  Math.abs(en.dx); }
+                if (en.x + en.r > 350) { en.x = 350 - en.r; en.dx = -Math.abs(en.dx); }
+                if (en.y - en.r < 0)   { en.y = en.r;       en.dy =  Math.abs(en.dy); }
+                if (en.y + en.r > 350) { en.y = 350 - en.r; en.dy = -Math.abs(en.dy); }
+            }
+            avoidCtx.beginPath(); avoidCtx.arc(en.x, en.y, en.r, 0, Math.PI*2); avoidCtx.fill();
+            if (avoidGameActive && Math.hypot(playerPos.x - en.x, playerPos.y - en.y) < 14) {
+                avoidGameActive = false;
+                socket.emit('player_dead');
+                const msgTag = document.getElementById('deadMsg');
+                msgTag.innerText = deadMessages[Math.floor(Math.random() * deadMessages.length)];
+                document.getElementById('deadOverlay').style.display = 'flex';
+            }
+        });
+        requestAnimationFrame(updateAvoidFrame);
+    }
+
+    avoidCanvas.addEventListener('mousemove', (e) => {
+        const pos = getCanvasPos(e.clientX, e.clientY);
+        playerPos.x = Math.max(0, Math.min(350, pos.x));
+        playerPos.y = Math.max(0, Math.min(350, pos.y));
+    });
+    avoidCanvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        const pos = getCanvasPos(e.touches[0].clientX, e.touches[0].clientY);
+        playerPos.x = Math.max(0, Math.min(350, pos.x));
+        playerPos.y = Math.max(0, Math.min(350, pos.y));
+    }, { passive: false });
     // ════════════════════════════════════════════
     //  공 피하기 게임
     // ════════════════════════════════════════════
@@ -1017,8 +1156,35 @@
     //  MEMORY GAME 클라이언트 로직
     // ════════════════════════════════════════════
     let memoryDeck = [], memoryFaceUp = {}, memoryMatched = new Set();
+    // ════════════════════════════════════════════
+    //  클릭 게임
+    // ════════════════════════════════════════════
+    function sendClick() {
+        if (!document.getElementById('clickBtn').disabled) socket.emit('click_action');
+    }
+
+    // ════════════════════════════════════════════
+    //  채팅
+    // ════════════════════════════════════════════
+    function sendMessage() {
+        const input = document.getElementById('chatInput');
+        if (input.value.trim()) { socket.emit('send_message', input.value); input.value = ''; }
+    }
+    socket.on('chat_message', (data) => {
+        const p = document.createElement('p'); p.style.margin = '5px 0';
+        p.innerHTML = `<b style="color:var(--point-color)">${data.user}:</b> ${data.text}`;
+        document.getElementById('chatBox').appendChild(p);
+        document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+    });
+
+    // ════════════════════════════════════════════
+    //  MEMORY GAME 클라이언트 로직
+    // ════════════════════════════════════════════
+    let memoryDeck = [], memoryFaceUp = {}, memoryMatched = new Set();
     let memoryMyTurn = false;
     let memoryRevealInterval = null;
+    let memoryGameTimerInterval = null;
+    let memoryTurnTimerInterval = null;
     let memoryGameTimerInterval = null;
     let memoryTurnTimerInterval = null;
 
@@ -1034,6 +1200,8 @@
     function memoryStartRevealCountdown() {
         const banner   = document.getElementById('memoryTurnBanner');
         const revDiv   = document.getElementById('memoryRevealTimer');
+        const banner   = document.getElementById('memoryTurnBanner');
+        const revDiv   = document.getElementById('memoryRevealTimer');
         const revCount = document.getElementById('memoryRevealCount');
         banner.innerText = '👀 카드 위치를 외우세요!';
         revDiv.style.display = 'block';
@@ -1047,6 +1215,7 @@
                 revDiv.style.display = 'none';
                 banner.innerText = '카드를 뒤집는 중...';
                 memoryRenderGrid(false);
+                memoryRenderGrid(false);
                 socket.emit('memory_reveal_done');
             }
         }, 1000);
@@ -1058,7 +1227,10 @@
         const banner = document.getElementById('memoryTurnBanner');
         banner.innerText = memoryMyTurn ? '✨ 내 턴! 카드를 선택하세요' : `⏳ ${currentName}의 턴`;
         document.getElementById('memoryGrid').classList.toggle('my-turn', memoryMyTurn);
+        banner.innerText = memoryMyTurn ? '✨ 내 턴! 카드를 선택하세요' : `⏳ ${currentName}의 턴`;
+        document.getElementById('memoryGrid').classList.toggle('my-turn', memoryMyTurn);
 
+        // 내 턴 카운트다운
         // 내 턴 카운트다운
         const turnTimerBox = document.getElementById('memoryTurnTimer');
         const turnTimerVal = document.getElementById('memoryTurnTimerVal');
@@ -1075,12 +1247,14 @@
                 turnTimerVal.innerText = turnLeft;
                 if (turnLeft <= 3) turnTimerBox.classList.add('urgent');
                 if (turnLeft <= 0) { clearInterval(memoryTurnTimerInterval); memoryTurnTimerInterval = null; }
+                if (turnLeft <= 0) { clearInterval(memoryTurnTimerInterval); memoryTurnTimerInterval = null; }
             }, 1000);
         } else {
             turnTimerBox.style.display = 'none';
         }
     });
 
+    // ── 턴 시간 초과 ──
     // ── 턴 시간 초과 ──
     socket.on('memory_turn_timeout', ({ expiredTurn }) => {
         for (const idx in memoryFaceUp) {
@@ -1095,6 +1269,7 @@
         document.getElementById('memoryTurnTimer').style.display = 'none';
         if (expiredTurn === socket.id) {
             document.getElementById('memoryTurnBanner').innerText = '⏰ 시간 초과! 턴이 넘어갑니다...';
+            document.getElementById('memoryTurnBanner').innerText = '⏰ 시간 초과! 턴이 넘어갑니다...';
         }
     });
 
@@ -1108,6 +1283,7 @@
 
     socket.on('memory_card_flipped', ({ index, emoji }) => {
         memoryFaceUp[index] = true;
+        memoryDeck[index] = emoji;
         memoryDeck[index] = emoji;
         const cardEl = document.querySelector(`.mg-card[data-idx="${index}"]`);
         if (cardEl) {
@@ -1158,6 +1334,7 @@
     function memoryUpdateScoreBoard(users) {
         const board = document.getElementById('memoryScoreBoard');
         if (!board || document.getElementById('memoryWrapper').style.display !== 'block') return;
+        if (!board || document.getElementById('memoryWrapper').style.display !== 'block') return;
         board.innerHTML = '';
         for (const id in users) {
             const u = users[id];
@@ -1167,14 +1344,17 @@
             item.innerHTML = `
                 <span class="mg-score-name">${u.userName}</span>
                 <span class="mg-score-val" id="mg-score-val-${id}">${u.score || 0}</span>`;
+                <span class="mg-score-val" id="mg-score-val-${id}">${u.score || 0}</span>`;
             board.appendChild(item);
         }
     }
 
     function memoryReset() {
         if (memoryRevealInterval)    { clearInterval(memoryRevealInterval);    memoryRevealInterval = null; }
+        if (memoryRevealInterval)    { clearInterval(memoryRevealInterval);    memoryRevealInterval = null; }
         if (memoryGameTimerInterval) { clearInterval(memoryGameTimerInterval); memoryGameTimerInterval = null; }
         if (memoryTurnTimerInterval) { clearInterval(memoryTurnTimerInterval); memoryTurnTimerInterval = null; }
+
 
         document.getElementById('memoryWrapper').style.display = 'none';
         document.getElementById('memoryGrid').innerHTML = '';
@@ -1185,6 +1365,7 @@
         document.getElementById('memoryGameTimer').classList.remove('urgent');
         document.getElementById('memoryGameTimerVal').innerText = '--';
         document.getElementById('memoryTurnBanner').innerText = '잠시 후 게임이 시작됩니다...';
+
 
         memoryDeck = []; memoryFaceUp = {}; memoryMatched = new Set();
         memoryMyTurn = false;
