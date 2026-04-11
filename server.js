@@ -146,9 +146,6 @@ function endGame(roomName, foulerId = null) {
         
         // 확실하게 숫자 계산
         room.users[wid].winCount = Number(room.users[wid].winCount || 0) + 1; 
-        
-        // 🔥 터미널에서 점수가 오르는 걸 직접 확인할 수 있습니다!
-        console.log(`✅ [승점 획득] ${room.users[wid].userName} 님이 1승 추가! (현재 총 ${room.users[wid].winCount}승)`);
 
         if (room.users[wid].winCount >= 3) {
             console.log(`🏆 [최종 우승] ${room.users[wid].userName} 3승 달성!!`);
@@ -164,7 +161,9 @@ function endGame(roomName, foulerId = null) {
     });
 
     if (isFinal) {
-        for (const id in room.users) room.users[id].winCount = 0; // 최종 승리 시 리셋
+        for (const id in room.users) room.users[id].winCount = 0;
+        room.roomBet = null;
+        io.to(roomName).emit('room_bet_update', null);
     }
     
     io.to(roomName).emit('update_users', room.users);

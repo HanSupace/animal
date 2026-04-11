@@ -211,6 +211,7 @@
     let myName = "", isMyReady = false, countdownInterval;
     let resultStep = 0;
     let lastResultData = null;
+    let currentBet = null;
     
     let currentGameMode = null;
     let avoidGameActive = false, renderLoopActive = false, avoidEnemies = [], playerPos = { x: 175, y: 175 };
@@ -262,7 +263,7 @@
         readyBtn.style.backgroundColor = "var(--btn-green)";
         readyBtn.style.color = "#3a0002";
         document.getElementById('gameControlBtns').style.display = 'block';
-        document.getElementById('myBet').parentElement.style.display = 'block';
+        document.getElementById('myBet').parentElement.style.display = currentBet ? 'none' : 'block';
         const nameDisp = document.getElementById('gameNameDisplay');
         nameDisp.style.display = 'none'; nameDisp.style.margin = '0';
         const clickBtn = document.getElementById('clickBtn');
@@ -272,7 +273,7 @@
         avoidCanvas.style.display = 'none';
         document.getElementById('avoidWrapper').style.display = 'none';
         reactionArea.style.display = 'none'; reactionArea.style.margin = '0';
-        document.getElementById('bigBetDisplay').innerText = "내기를 선택하세요";
+        // bigBetDisplay는 currentBet 기준으로 유지
         avoidGameActive = false;
         renderLoopActive = false;
         reactionArea.className = 'rect-wait';
@@ -400,7 +401,16 @@
     });
 
     socket.on('room_bet_update', (bet) => {
-        document.getElementById('bigBetDisplay').innerText = `🔥 ${bet} 내기`;
+        currentBet = bet;
+        const betWrapper = document.getElementById('myBet').parentElement;
+        if (bet) {
+            document.getElementById('bigBetDisplay').innerText = `🔥 ${bet} 내기`;
+            betWrapper.style.display = 'none';
+        } else {
+            document.getElementById('bigBetDisplay').innerText = '';
+            document.getElementById('myBet').value = '';
+            betWrapper.style.display = 'block';
+        }
     });
 
     socket.on('game_over', ({ winners, winnerIds, maxScore, mode, isFinal, finalWinner }) => {
