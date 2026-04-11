@@ -7,6 +7,9 @@ const {
     handleClickAction,
     handlePlayerDead,
     handleReactionResult,
+    handleMemoryCardClick,
+    startMemoryTurn,
+    cleanupMemoryGame,
 } = require('./games');
 
 const app = express();
@@ -43,13 +46,13 @@ io.on('connection', (socket) => {
             };
         }
 
-        rooms[roomName].users[socket.id] = { 
-            userName, 
-            ready: false, 
-            score: 0, 
-            winCount: 0, // 🔥 승수 0으로 시작
+        rooms[roomName].users[socket.id] = {
+            userName,
+            ready: false,
+            score: 0,
+            winCount: 0,
             isDead: false,
-            betType: null 
+            betType: null,
         };
 
         if (rooms[roomName].roomBet) {
@@ -83,6 +86,24 @@ io.on('connection', (socket) => {
 
     socket.on('reaction_result', (resultTime) => {
         handleReactionResult(io, socket.roomName, rooms[socket.roomName], socket.id, resultTime, endGame);
+    });
+
+    // 5초 공개 완료 → 첫 턴 결정
+    socket.on('memory_reveal_done', () => {
+        if (!socket.roomName) return;
+        const room = rooms[socket.roomName];
+        if (!room || room.currentGameMode !== 'MEMORY') return;
+        // 이미 턴이 결정된 경우 중복 호출 방지
+        if (room.memoryState?.currentTurn) return;
+        startMemoryTurn(io, rooms, socket.roomName);
+    });
+
+    // 카드 클릭 처리
+    socket.on('memory_card_click', (cardIndex) => {
+        if (!socket.roomName) return;
+        const room = rooms[socket.roomName];
+        if (!room || room.currentGameMode !== 'MEMORY') return;
+        handleMemoryCardClick(io, rooms, socket.roomName, socket.id, cardIndex, endGame);
     });
 
     socket.on('send_message', (message) => {
@@ -123,8 +144,8 @@ function handleUserLeave(socket) {
     }
 }
 
-// 🔥 게임 종료 및 승점 판정 로직
-function endGame(roomName, foulerId = null) {
+// ── 게임 종료 및 승점 판정 ────────────────────────────────
+function endGame(roomName, foulerId = null, isTimeout = false) {
     const room = rooms[roomName];
     if (!room || !room.isGameRunning) return;
 
@@ -135,17 +156,18 @@ function endGame(roomName, foulerId = null) {
     room.isGameRunning = false;
     room.currentGameMode = null;
 
+    // 메모리 게임 턴 타이머 정리
+    if (mode === 'MEMORY') cleanupMemoryGame(room);
+
     const { winners, winnerIds, bestResult } = resolveWinners(room, mode, foulerId);
 
-    // 단독 우승 시: 승점 추가
+    // 단독 우승 시 승점 추가
     let isFinal = false;
     let finalWinner = null;
 
     if (winnerIds.length === 1) {
         const wid = winnerIds[0];
-        
-        // 확실하게 숫자 계산
-        room.users[wid].winCount = Number(room.users[wid].winCount || 0) + 1; 
+        room.users[wid].winCount = Number(room.users[wid].winCount || 0) + 1;
 
         if (room.users[wid].winCount >= 3) {
             console.log(`🏆 [최종 우승] ${room.users[wid].userName} 3승 달성!!`);
@@ -157,7 +179,14 @@ function endGame(roomName, foulerId = null) {
     for (const id in room.users) room.users[id].ready = false;
 
     io.to(roomName).emit('game_over', {
-        winners, winnerIds, maxScore: bestResult, mode, foulerId, isFinal, finalWinner
+        winners,
+        winnerIds,
+        maxScore: bestResult,
+        mode,
+        foulerId,
+        isFinal,
+        finalWinner,
+        isTimeout, // ✅ 시간 초과 여부 → 클라이언트에서 "시간 초과! 점수로 승부" 메시지 표시에 활용
     });
 
     if (isFinal) {
@@ -165,7 +194,7 @@ function endGame(roomName, foulerId = null) {
         room.roomBet = null;
         io.to(roomName).emit('room_bet_update', null);
     }
-    
+
     io.to(roomName).emit('update_users', room.users);
 }
 

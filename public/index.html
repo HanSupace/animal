@@ -12,6 +12,12 @@
             --btn-orange: #ff9800;
         }
 
+        /* ── 전역 드래그 선택 방지 ── */
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
         body {
             font-family: 'Do Hyeon', sans-serif;
             background: radial-gradient(circle at center, #a70b13 0%, #3a0002 100%);
@@ -81,46 +87,209 @@
         #readyBtn, #leaveBtn { transition: none; }
         #readyBtn[style*="display: none"], #leaveBtn[style*="display: none"] { margin: 0 !important; padding: 0 !important; height: 0 !important; border: none !important; }
         #myBet-wrapper[style*="display: none"] { margin: 0 !important; }
-    #deadOverlay {
-        display: none; 
-        position: absolute; 
-        top: 50%; 
-        left: 50%; 
-        transform: translate(-50%, -50%); 
-        width: 350px; 
-        height: 350px; 
-        background: rgba(0,0,0,0.85); 
-        border-radius: 15px; 
-        flex-direction: column; 
-        justify-content: center; 
-        align-items: center; 
-        z-index: 100; 
-        text-align: center; 
-        padding: 20px; 
-        box-sizing: border-box;
-        backdrop-filter: blur(4px);
-    }
 
-    .spinner {
-        border: 4px solid rgba(255,255,255,0.3);
-        border-top: 4px solid var(--point-color);
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin-bottom: 20px;
-    }
+        #deadOverlay {
+            display: none; 
+            position: absolute; 
+            top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); 
+            width: 350px; height: 350px; 
+            background: rgba(0,0,0,0.85); 
+            border-radius: 15px; 
+            flex-direction: column; 
+            justify-content: center; align-items: center; 
+            z-index: 100; text-align: center; padding: 20px; 
+            box-sizing: border-box; backdrop-filter: blur(4px);
+        }
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid var(--point-color);
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #deadMsg { font-size: 26px; color: var(--point-color); line-height: 1.4; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); margin: 10px 0; }
 
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* ════════════════════════════════════════════
+           MEMORY GAME STYLES
+           ════════════════════════════════════════════ */
+        #memoryWrapper {
+            display: none;
+            width: 100%;
+            margin: 10px 0;
+        }
 
-    #deadMsg {
-    font-size: 26px; /* 크게 */
-    color: var(--point-color); /* 노란색 강조 */
-    line-height: 1.4;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-    margin: 10px 0;
-}
-        
+        /* 게임 전체 제한 시간 */
+        #memoryGameTimer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 18px;
+            color: #fff;
+            background: rgba(0,0,0,0.45);
+            border-radius: 10px;
+            padding: 6px 14px;
+            margin-bottom: 8px;
+        }
+        #memoryGameTimerVal {
+            font-size: 26px;
+            color: var(--point-color);
+            font-weight: bold;
+            min-width: 40px;
+            text-align: center;
+        }
+        #memoryGameTimer.urgent #memoryGameTimerVal {
+            color: #ff5252;
+            animation: pulse 0.6s infinite;
+        }
+
+        /* 내 턴 10초 카운트다운 */
+        #memoryTurnTimer {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 18px;
+            color: #fff;
+            background: rgba(255,235,59,0.15);
+            border: 1px solid rgba(255,235,59,0.35);
+            border-radius: 10px;
+            padding: 6px 14px;
+            margin-bottom: 8px;
+        }
+        #memoryTurnTimerVal {
+            font-size: 26px;
+            color: var(--point-color);
+            font-weight: bold;
+            min-width: 24px;
+            text-align: center;
+        }
+        #memoryTurnTimer.urgent {
+            background: rgba(255,82,82,0.2);
+            border-color: rgba(255,82,82,0.5);
+        }
+        #memoryTurnTimer.urgent #memoryTurnTimerVal {
+            color: #ff5252;
+            animation: pulse 0.4s infinite;
+        }
+
+        /* 턴 표시 배너 */
+        #memoryTurnBanner {
+            font-size: 20px;
+            color: var(--point-color);
+            background: rgba(0,0,0,0.45);
+            border-radius: 12px;
+            padding: 8px 14px;
+            margin-bottom: 10px;
+            min-height: 38px;
+            letter-spacing: -0.3px;
+        }
+
+        /* 5초 공개 카운트다운 */
+        #memoryRevealTimer {
+            font-size: 18px;
+            color: #fff;
+            background: rgba(255,235,59,0.18);
+            border-radius: 10px;
+            padding: 6px 12px;
+            margin-bottom: 8px;
+            display: none;
+        }
+
+        /* 4×4 카드 그리드 */
+        #memoryGrid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            width: 100%;
+            max-width: 360px;
+            margin: 0 auto;
+        }
+
+        /* ── 개별 카드 ── */
+        .mg-card {
+            aspect-ratio: 1;
+            perspective: 600px;
+            cursor: pointer;
+        }
+        .mg-card.matched,
+        .mg-card.no-click {
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .mg-card__inner {
+            position: relative;
+            width: 100%; height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.55s cubic-bezier(.4,0,.2,1);
+            border-radius: 10px;
+        }
+        .mg-card.face-up .mg-card__inner   { transform: rotateY(180deg); }
+        .mg-card.matched  .mg-card__inner   { transform: rotateY(180deg); }
+
+        .mg-card__back,
+        .mg-card__front {
+            position: absolute;
+            inset: 0;
+            border-radius: 10px;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1.2rem, 6vw, 2rem);
+        }
+        .mg-card__back {
+            background: rgba(0,0,0,0.55);
+            border: 2px solid rgba(255,235,59,0.3);
+            font-size: clamp(1rem, 5vw, 1.5rem);
+            color: rgba(255,255,255,0.25);
+        }
+        .mg-card__back::after { content: '❓'; }
+        .mg-card__front {
+            background: linear-gradient(135deg, #fff 0%, #f0e8ff 100%);
+            border: 2px solid rgba(200,160,255,0.4);
+            transform: rotateY(180deg);
+        }
+        /* 매칭 완료 글로우 */
+        .mg-card.matched .mg-card__front {
+            background: linear-gradient(135deg, #e8fff0, #b2ffd0);
+            border-color: #00e676;
+            box-shadow: 0 0 14px rgba(0,230,118,.5);
+            animation: mgMatchPop .4s ease;
+        }
+        @keyframes mgMatchPop {
+            0%   { transform: rotateY(180deg) scale(1); }
+            50%  { transform: rotateY(180deg) scale(1.13); }
+            100% { transform: rotateY(180deg) scale(1); }
+        }
+
+        /* 내 턴 하이라이트 */
+        #memoryGrid.my-turn .mg-card:not(.matched):not(.face-up) {
+            border-color: var(--point-color);
+            box-shadow: 0 0 8px rgba(255,235,59,.35);
+        }
+        #memoryGrid.my-turn .mg-card:not(.matched):not(.face-up):hover .mg-card__back {
+            background: rgba(255,235,59,.12);
+        }
+
+        /* 점수판 */
+        #memoryScoreBoard {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(0,0,0,0.4);
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin-top: 10px;
+            font-size: 17px;
+        }
+        .mg-score-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .mg-score-name { font-size: 13px; color: rgba(255,255,255,0.6); }
+        .mg-score-val  { font-size: 26px; color: var(--point-color); font-weight: bold; }
+        .mg-score-item.active-player .mg-score-name { color: var(--point-color); }
+        /* ════════════════════════════════════════════ */
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
 </head>
@@ -165,28 +334,48 @@
         </div>
 
         <div id="gameControlBtns">
-        <button id="readyBtn" onclick="toggleReady()">준비하기 (Ready)</button>
+            <button id="readyBtn" onclick="toggleReady()">준비하기 (Ready)</button>
         </div>
+
         <h2 id="gameNameDisplay"></h2>
         <div id="timer"><span id="timeDisplay">3</span></div>
         <button id="clickBtn" onclick="sendClick()">클릭</button>
+
         <div id="avoidWrapper" style="position: relative; width: 350px; height: 350px; margin: 0 auto; display: none;">
-        <canvas id="avoidCanvas" width="350" height="350"></canvas>
-        <div id="deadOverlay">
-            <div class="spinner"></div>
-            <p id="deadMsg"></p>
-            <p style="font-size:12px; color:#aaa; margin-top:15px;">다른 플레이어의 결과를 기다리는 중...</p>
+            <canvas id="avoidCanvas" width="350" height="350"></canvas>
+            <div id="deadOverlay">
+                <div class="spinner"></div>
+                <p id="deadMsg"></p>
+                <p style="font-size:12px; color:#aaa; margin-top:15px;">다른 플레이어의 결과를 기다리는 중...</p>
+            </div>
         </div>
-    </div>
+
         <div id="reactionWrapper" style="position: relative; width: 100%; max-width: 350px; margin: 0 auto; display: none;">
-        <div id="reactionArea" onclick="handleReactionClick()">화면이 초록색이 되면 클릭!</div>
-        <div id="reactionDeadOverlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); border-radius:20px; flex-direction:column; justify-content:center; align-items:center; z-index:100; text-align:center;">
-            <div class="spinner"></div>
-            <p id="reactionDeadMsg" style="font-size:22px; color:var(--point-color); line-height:1.4; margin:10px 0;"></p>
-            <p style="font-size:12px; color:#aaa; margin-top:10px;">다른 플레이어의 결과를 기다리는 중...</p>
+            <div id="reactionArea" onclick="handleReactionClick()">화면이 초록색이 되면 클릭!</div>
+            <div id="reactionDeadOverlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); border-radius:20px; flex-direction:column; justify-content:center; align-items:center; z-index:100; text-align:center;">
+                <div class="spinner"></div>
+                <p id="reactionDeadMsg" style="font-size:22px; color:var(--point-color); line-height:1.4; margin:10px 0;"></p>
+                <p style="font-size:12px; color:#aaa; margin-top:10px;">다른 플레이어의 결과를 기다리는 중...</p>
+            </div>
         </div>
+
+        <!-- ══ MEMORY GAME UI ══ -->
+        <div id="memoryWrapper">
+            <!-- 게임 전체 제한 시간 -->
+            <div id="memoryGameTimer">
+                ⏱ 남은 시간 <span id="memoryGameTimerVal">--</span>초
+            </div>
+            <!-- 내 턴 10초 카운트다운 -->
+            <div id="memoryTurnTimer">
+                🕐 내 턴 <span id="memoryTurnTimerVal">10</span>초
+            </div>
+            <div id="memoryTurnBanner">잠시 후 게임이 시작됩니다...</div>
+            <div id="memoryRevealTimer">👀 카드를 외우세요! <span id="memoryRevealCount">5</span>초</div>
+            <div id="memoryGrid"></div>
+            <div id="memoryScoreBoard"></div>
         </div>
-        
+        <!-- ══════════════════ -->
+
         <div class="chat-box" id="chatBox"></div>
         <div class="chat-input-set">
             <input type="text" id="chatInput" placeholder="메시지를 입력하세요" onkeypress="if(event.key==='Enter')sendMessage()" autocomplete="off"/>
@@ -203,19 +392,11 @@
 </div>
 
 <div id="leavePopup" style="
-    display:none;
-    position: fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background: rgba(0,0,0,0.85);
-    z-index:999;
-    justify-content:center;
-    align-items:center;
-    flex-direction:column;
-">
+    display:none; position: fixed; top:0; left:0;
+    width:100%; height:100%; background: rgba(0,0,0,0.85);
+    z-index:999; justify-content:center; align-items:center; flex-direction:column;">
     <h1 id="leaveTitle" class="popup-title"></h1>
     <p id="leaveDesc" class="popup-desc" style="font-size:24px; color:white; margin-bottom:40px;"></p>
-
     <div style="display:flex; gap:10px;">
         <button id="confirmLeaveBtn" class="btn-main" style="width: 150px;">나가기</button>
         <button id="cancelLeaveBtn" class="btn-sub" style="width: 150px;">취소</button>
@@ -224,15 +405,18 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
+    // ══════════════════════════════════════════════
+    //  기존 코드 (원본 유지)
+    // ══════════════════════════════════════════════
     const socket = io();
     const deadMessages = [
-    "괜찮아요 게임 좀 못할 수도 있죠. 마우스 쥐는 법 부터 다시 배워 볼까요?",
-    "와 잠깐만요 벌써 죽었다구요? 진짜에요?",
-    "풉.",
-    "방금 건 좀 아니었다 그쵸?",
-    "님 실력 실화임? ㅋㅋㅋ",
-    "이걸 못 피하네... ㅉㅉ"
-];
+        "괜찮아요 게임 좀 못할 수도 있죠. 마우스 쥐는 법 부터 다시 배워 볼까요?",
+        "와 잠깐만요 벌써 죽었다구요? 진짜에요?",
+        "풉.",
+        "방금 건 좀 아니었다 그쵸?",
+        "님 실력 실화임? ㅋㅋㅋ",
+        "이걸 못 피하네... ㅉㅉ"
+    ];
     let myName = "", isMyReady = false, countdownInterval;
     let resultStep = 0;
     let lastResultData = null;
@@ -247,6 +431,9 @@
     const avoidCanvas = document.getElementById('avoidCanvas');
     const avoidCtx = avoidCanvas.getContext('2d');
     const reactionArea = document.getElementById('reactionArea');
+
+    // ── 드래그 선택 방지 ──
+    document.addEventListener('dragstart', e => e.preventDefault());
 
     function changeScreen(id) {
         screens.forEach(s => s.classList.remove('active'));
@@ -284,7 +471,7 @@
 
     function resetUI() {
         clearInterval(countdownInterval);
-        isFouler = false
+        isFouler = false;
         const readyBtn = document.getElementById('readyBtn');
         readyBtn.innerText = "준비하기 (Ready)";
         readyBtn.style.backgroundColor = "var(--btn-green)";
@@ -302,12 +489,14 @@
         reactionArea.style.display = 'none'; reactionArea.style.margin = '0';
         document.getElementById('reactionWrapper').style.display = 'none';
         document.getElementById('reactionDeadOverlay').style.display = 'none';
-        // bigBetDisplay는 currentBet 기준으로 유지
         avoidGameActive = false;
         renderLoopActive = false;
         reactionArea.className = 'rect-wait';
         isMyReady = false;
         document.getElementById('deadOverlay').style.display = 'none';
+
+        // ── 메모리 게임 UI 초기화 ──
+        memoryReset();
     }
 
     function toggleReady() {
@@ -354,6 +543,8 @@
             li.innerHTML = `${status} ${u.userName} ${dead} <span style="float:right; color:#ffeb3b;"><b>${u.winCount || 0}승</b></span>`;
             ul.appendChild(li);
         }
+        // 메모리 게임 점수판도 갱신
+        if (currentGameMode === 'MEMORY') memoryUpdateScoreBoard(users);
     });
 
     socket.on('game_selected', (mode) => {
@@ -361,17 +552,18 @@
         document.getElementById('gameControlBtns').style.display = 'none';
         document.getElementById('myBet').parentElement.style.display = 'none';
         const title = document.getElementById('gameNameDisplay');
-        if(mode === 'CLICK') title.innerText = "🔥 광클 대결! 🔥";
-        else if(mode === 'AVOID') title.innerText = "🏃 공 피하기! 🏃";
-        else if(mode === 'REACTION') title.innerText = "⚡ 반응속도 테스트! ⚡";
+        if (mode === 'CLICK')    title.innerText = "🔥 광클 대결! 🔥";
+        else if (mode === 'AVOID')    title.innerText = "🏃 공 피하기! 🏃";
+        else if (mode === 'REACTION') title.innerText = "⚡ 반응속도 테스트! ⚡";
+        else if (mode === 'MEMORY')   title.innerText = "🃏 카드 기억하기! 🃏";
         title.style.display = 'block';
         title.style.margin = '10px 0';
 
-        if(mode === 'AVOID') {
+        if (mode === 'AVOID') {
             document.getElementById('avoidWrapper').style.display = 'block';
             avoidCanvas.style.display = 'block';
             initAvoidGameSetup();
-        } else if(mode === 'REACTION') {
+        } else if (mode === 'REACTION') {
             document.getElementById('reactionWrapper').style.display = 'block';
             reactionArea.style.display = 'flex';
             reactionArea.style.margin = '0';
@@ -379,12 +571,15 @@
             reactionArea.innerText = "대기...";
             reactionState = 'DISABLED';
             isFouler = false;
-        } else if(mode === 'CLICK') {
+        } else if (mode === 'CLICK') {
             const btn = document.getElementById('clickBtn');
             btn.style.display = 'block';
             btn.style.marginBottom = '15px';
             btn.disabled = true;
             btn.innerText = "대기...";
+        } else if (mode === 'MEMORY') {
+            document.getElementById('memoryWrapper').style.display = 'block';
+            document.getElementById('memoryTurnBanner').innerText = '잠시 후 카드를 공개합니다...';
         }
     });
 
@@ -412,20 +607,41 @@
             avoidGameActive = true;
         } else if (mode === 'REACTION') {
             document.getElementById('timer').style.display = 'none';
-
-            // 🔥 상태 초기화 (핵심)
             reactionState = 'WAIT';
             isFouler = false;
-
             reactionArea.className = 'rect-wait';
             reactionArea.innerText = "초록색이 되면 탭!";
+        } else if (mode === 'MEMORY') {
+            // 메모리 게임은 기존 timer 숨기고 자체 게임 타이머 사용
+            document.getElementById('timer').style.display = 'none';
+            // 게임 전체 제한 시간 카운트다운 시작 (공개 5초 이후부터 실제 플레이)
+            const revealSec = 5;
+            let gameTimeLeft = duration;
+            const gameTimerVal = document.getElementById('memoryGameTimerVal');
+            const gameTimerBox = document.getElementById('memoryGameTimer');
+            gameTimerVal.innerText = gameTimeLeft;
+            // 공개 5초가 지난 후부터 카운트다운
+            setTimeout(() => {
+                memoryGameTimerInterval = setInterval(() => {
+                    gameTimeLeft--;
+                    gameTimerVal.innerText = gameTimeLeft;
+                    if (gameTimeLeft <= 30) gameTimerBox.classList.add('urgent');
+                    if (gameTimeLeft <= 0) {
+                        clearInterval(memoryGameTimerInterval);
+                        memoryGameTimerInterval = null;
+                    }
+                }, 1000);
+            }, revealSec * 1000);
+            return; // memory_init 이벤트에서 나머지 처리
         }
 
-        countdownInterval = setInterval(() => {
-            timeLeft--; 
-            if(mode !== 'REACTION') timeDisplay.innerText = timeLeft;
-            if (timeLeft <= 0) { clearInterval(countdownInterval); avoidGameActive = false; }
-        }, 1000);
+        if (mode !== 'MEMORY') {
+            countdownInterval = setInterval(() => {
+                timeLeft--; 
+                if (mode !== 'REACTION') timeDisplay.innerText = timeLeft;
+                if (timeLeft <= 0) { clearInterval(countdownInterval); avoidGameActive = false; }
+            }, 1000);
+        }
     });
 
     socket.on('reaction_go', () => {
@@ -437,10 +653,9 @@
         }
     });
 
-    // 누군가 먼저 탭한 순간 서버가 즉시 전체에 브로드캐스트
     socket.on('reaction_first_click', ({ winnerId }) => {
-        if (reactionState === 'DISABLED') return; // 이미 처리됨
-        if (winnerId === socket.id) return; // 1등 본인은 자기 UI 이미 처리됨
+        if (reactionState === 'DISABLED') return;
+        if (winnerId === socket.id) return;
         reactionState = 'DISABLED';
         reactionArea.className = 'rect-foul';
         reactionArea.innerText = "탈락 😵";
@@ -478,23 +693,13 @@
         } else if (winners && Array.isArray(winners)) {
             isWinner = winners.some(w => w.trim() === myName.trim());
         }
-        
         const isDraw = winners && winners.length > 1;
-
-        lastResultData = { 
-            winners: winners || [], 
-            maxScore, 
-            mode, 
-            isWinner, 
-            isFinal, 
-            finalWinner, 
-            isDraw, 
-            isFouler: isFouler
-        };
+        lastResultData = { winners: winners || [], maxScore, mode, isWinner, isFinal, finalWinner, isDraw, isFouler };
         resultStep = 0;
         showResultStep();
     });
 
+    // ── Avoid game ──
     function getCanvasPos(clientX, clientY) {
         const rect = avoidCanvas.getBoundingClientRect();
         const scaleX = avoidCanvas.width / rect.width;
@@ -503,10 +708,9 @@
     }
 
     function initAvoidGameSetup() {
-        renderLoopActive = true; 
-        avoidGameActive = false;
+        renderLoopActive = true; avoidGameActive = false;
         avoidEnemies = []; playerPos = { x: 175, y: 175 };
-        for(let i=0; i<8; i++) {
+        for (let i = 0; i < 8; i++) {
             avoidEnemies.push({ x: Math.random()*350, y: Math.random()*350, dx: (Math.random()-0.5)*7, dy: (Math.random()-0.5)*7, r: 6 });
         }
         requestAnimationFrame(updateAvoidFrame);
@@ -520,23 +724,16 @@
         avoidEnemies.forEach(en => {
             if (avoidGameActive) {
                 en.x += en.dx; en.y += en.dy;
-                if(en.x < 0 || en.x > 350) en.dx *= -1; if(en.y < 0 || en.y > 350) en.dy *= -1;
+                if (en.x < 0 || en.x > 350) en.dx *= -1; if (en.y < 0 || en.y > 350) en.dy *= -1;
             }
             avoidCtx.beginPath(); avoidCtx.arc(en.x, en.y, en.r, 0, Math.PI*2); avoidCtx.fill();
-            
-            // --- 이 부분을 수정/추가 하세요 ---
-            if(avoidGameActive && Math.hypot(playerPos.x - en.x, playerPos.y - en.y) < 14) {
-                avoidGameActive = false; 
-                socket.emit('player_dead');
-
-                // 추가: 밈 오버레이 띄우기
+            if (avoidGameActive && Math.hypot(playerPos.x - en.x, playerPos.y - en.y) < 14) {
+                avoidGameActive = false; socket.emit('player_dead');
                 const overlay = document.getElementById('deadOverlay');
                 const msgTag = document.getElementById('deadMsg');
-                const randomIdx = Math.floor(Math.random() * deadMessages.length);
-                msgTag.innerText = deadMessages[randomIdx];
+                msgTag.innerText = deadMessages[Math.floor(Math.random() * deadMessages.length)];
                 overlay.style.display = 'flex';
             }
-            // --------------------------------
         });
         requestAnimationFrame(updateAvoidFrame);
     }
@@ -574,9 +771,9 @@
                 if (data.isWinner) {
                     pTitle.innerText = "🏆 최종 우승! 🏆";
                     pTitle.className = "popup-title win-text";
-                    pDesc.innerText = `야르~ 야르~ 야르~`; // 🔥 커스텀 승리 멘트!
+                    pDesc.innerText = `야르~ 야르~ 야르~`;
                 } else {
-                    pTitle.innerText = "ㅋ 이걸 지네"; // 🔥 커스텀 패배 멘트!
+                    pTitle.innerText = "ㅋ 이걸 지네";
                     pTitle.className = "popup-title lose-text";
                     pDesc.innerText = `[${data.finalWinner}]님의 최종 우승입니다.`;
                 }
@@ -584,9 +781,7 @@
                 if (data.isFouler) {
                     pTitle.innerText = "빨리 탭하기 긁?";
                     pTitle.className = "popup-title lose-text";
-
                 } else if (data.isWinner) {
-
                     if (data.isDraw) {
                         pTitle.innerText = "무승부!";
                         pTitle.className = "popup-title draw-text";
@@ -594,78 +789,257 @@
                         pTitle.innerText = "라운드 승리!";
                         pTitle.className = "popup-title win-text";
                     }
-
                 } else {
                     pTitle.innerText = "패배..";
                     pTitle.className = "popup-title lose-text";
                 }
             }
-                
-                let desc = "";
-                if (data.isDraw) {
-                    desc = "에휴... 한번 더"; // 🔥 커스텀 무승부 멘트!
-                } else {
-                    desc = `우승자: ${data.winners.join(', ')}`;
-                }
-                
-                if (data.mode === 'CLICK') desc += ` (${data.maxScore}회)`;
-                else if (data.mode === 'REACTION') desc += (data.maxScore === 9999 || data.maxScore === 99999 || data.maxScore === "없음" || data.maxScore === "실격" ? " (실패)" : ` (${data.maxScore}ms)`);
-                else if (data.mode === 'AVOID') desc += ` (생존)`;
-                
-                pDesc.innerText = desc;
+
+            let desc = "";
+            if (data.isDraw) {
+                desc = "에휴... 한번 더";
+            } else {
+                desc = `우승자: ${data.winners.join(', ')}`;
+            }
+            if (data.mode === 'CLICK')    desc += ` (${data.maxScore}회)`;
+            else if (data.mode === 'REACTION') desc += (data.maxScore === 9999 || data.maxScore === 99999 || data.maxScore === "없음" || data.maxScore === "실격" ? " (실패)" : ` (${data.maxScore}ms)`);
+            else if (data.mode === 'AVOID')  desc += ` (생존)`;
+            else if (data.mode === 'MEMORY') desc += ` (${data.maxScore}쌍)`;
+            pDesc.innerText = desc;
         }
         else if (resultStep === 1 && !data.isWinner && !data.isFinal) {
-            pTitle.innerText = "긁?";
-            pTitle.className = "popup-title lose-text";
-            pDesc.innerText = "긁?";
+            pTitle.innerText = "긁?"; pTitle.className = "popup-title lose-text"; pDesc.innerText = "긁?";
         }
         else if (resultStep === 2 && !data.isWinner && !data.isFinal) {
-            pTitle.innerText = "긁?";
-            pTitle.className = "popup-title lose-text";
-            pDesc.innerText = "ㅋㅋㅋㅋ 진짜 긁?";
+            pTitle.innerText = "긁?"; pTitle.className = "popup-title lose-text"; pDesc.innerText = "ㅋㅋㅋㅋ 진짜 긁?";
         }
         else if (resultStep === 3 && !data.isWinner && !data.isFinal) {
-            pTitle.innerText = "다시 ㄱ?";
-            pTitle.className = "popup-title lose-text";
-            pDesc.innerText = "쫄리면 말고~";
+            pTitle.innerText = "다시 ㄱ?"; pTitle.className = "popup-title lose-text"; pDesc.innerText = "쫄리면 말고~";
         }
         else {
             document.getElementById('resultPopup').style.display = 'none';
             resetUI();
-
-            if (data && !data.isFinal && !data.isDraw) {
-                toggleReady(); // 🔥 자동 다음 라운드 준비!
-            }
+            if (data && !data.isFinal && !data.isDraw) toggleReady();
             return;
         }
         document.getElementById('resultPopup').style.display = 'flex';
     }
 
-    function closePopup() {
-        resultStep++;
-        showResultStep();
-    }
+    function closePopup() { resultStep++; showResultStep(); }
 
     function leaveRoom() {
-        const pTitle = document.getElementById('leaveTitle');
-        const pDesc = document.getElementById('leaveDesc');
-
-        pTitle.innerText = "쫄?";
-        pTitle.className = "popup-title lose-text";
-        pDesc.innerText = "이걸 나가네";
-
+        document.getElementById('leaveTitle').innerText = "쫄?";
+        document.getElementById('leaveTitle').className = "popup-title lose-text";
+        document.getElementById('leaveDesc').innerText = "이걸 나가네";
         document.getElementById('leavePopup').style.display = 'flex';
-
-        document.getElementById('confirmLeaveBtn').onclick = () => {
-            location.reload();
-        };
-
-        document.getElementById('cancelLeaveBtn').onclick = () => {
-            document.getElementById('leavePopup').style.display = 'none';
-        };
+        document.getElementById('confirmLeaveBtn').onclick = () => location.reload();
+        document.getElementById('cancelLeaveBtn').onclick = () => { document.getElementById('leavePopup').style.display = 'none'; };
     }
 
     function goBackToLanding() { changeScreen('screen-landing'); }
+
+    // ══════════════════════════════════════════════
+    //  MEMORY GAME 클라이언트 로직
+    // ══════════════════════════════════════════════
+
+    let memoryDeck = [];          // 서버에서 받은 카드 배열
+    let memoryFaceUp = {};        // { index: true/false }
+    let memoryMatched = new Set();
+    let memoryMyTurn = false;
+    let memoryUsers = {};         // { socketId: { userName, score } }
+    let memoryRevealInterval = null;
+    let memoryGameTimerInterval = null; // 게임 전체 제한 시간 인터벌
+    let memoryTurnTimerInterval = null; // 내 턴 10초 카운트다운 인터벌
+
+    // ── 서버로부터 카드 덱 수신 → 5초 공개 시작 ──
+    socket.on('memory_init', ({ deck }) => {
+        memoryDeck = deck;
+        memoryFaceUp = {};
+        memoryMatched = new Set();
+        memoryMyTurn = false;
+
+        // 모든 카드 앞면 공개 상태로 렌더
+        memoryRenderGrid(true);
+        memoryStartRevealCountdown();
+    });
+
+    // ── 5초 카운트다운 ──
+    function memoryStartRevealCountdown() {
+        const banner  = document.getElementById('memoryTurnBanner');
+        const revDiv  = document.getElementById('memoryRevealTimer');
+        const revCount = document.getElementById('memoryRevealCount');
+        banner.innerText = '👀 카드 위치를 외우세요!';
+        revDiv.style.display = 'block';
+        let sec = 5;
+        revCount.innerText = sec;
+
+        memoryRevealInterval = setInterval(() => {
+            sec--;
+            revCount.innerText = sec;
+            if (sec <= 0) {
+                clearInterval(memoryRevealInterval);
+                revDiv.style.display = 'none';
+                banner.innerText = '카드를 뒤집는 중...';
+                memoryRenderGrid(false); // 뒷면으로 전환
+                // 서버에 공개 완료 신호 전송 → 서버가 첫 턴 결정
+                socket.emit('memory_reveal_done');
+            }
+        }, 1000);
+    }
+
+    // ── 턴 변경 ──
+    socket.on('memory_turn_change', ({ currentTurn, currentName, turnTimeLimit }) => {
+        memoryMyTurn = (currentTurn === socket.id);
+        const banner = document.getElementById('memoryTurnBanner');
+        banner.innerText = memoryMyTurn ? `✨ 내 턴! 카드를 선택하세요` : `⏳ ${currentName}의 턴`;
+        const grid = document.getElementById('memoryGrid');
+        grid.classList.toggle('my-turn', memoryMyTurn);
+
+        // 내 턴 카운트다운 타이머
+        const turnTimerBox = document.getElementById('memoryTurnTimer');
+        const turnTimerVal = document.getElementById('memoryTurnTimerVal');
+        clearInterval(memoryTurnTimerInterval);
+        memoryTurnTimerInterval = null;
+        turnTimerBox.classList.remove('urgent');
+
+        if (memoryMyTurn && turnTimeLimit) {
+            let turnLeft = turnTimeLimit;
+            turnTimerVal.innerText = turnLeft;
+            turnTimerBox.style.display = 'flex';
+            memoryTurnTimerInterval = setInterval(() => {
+                turnLeft--;
+                turnTimerVal.innerText = turnLeft;
+                if (turnLeft <= 3) turnTimerBox.classList.add('urgent');
+                if (turnLeft <= 0) {
+                    clearInterval(memoryTurnTimerInterval);
+                    memoryTurnTimerInterval = null;
+                }
+            }, 1000);
+        } else {
+            turnTimerBox.style.display = 'none';
+        }
+    });
+
+    // ── 턴 시간 초과 → 카드 덮기 + 내 턴 타이머 숨김 ──
+    socket.on('memory_turn_timeout', ({ expiredTurn }) => {
+        // 열려있던 카드 뒤집기
+        for (const idx in memoryFaceUp) {
+            if (memoryFaceUp[idx] && !memoryMatched.has(Number(idx))) {
+                memoryFaceUp[idx] = false;
+                const el = document.querySelector(`.mg-card[data-idx="${idx}"]`);
+                if (el) el.classList.remove('face-up');
+            }
+        }
+        // 내 턴 타이머 숨김
+        clearInterval(memoryTurnTimerInterval);
+        memoryTurnTimerInterval = null;
+        document.getElementById('memoryTurnTimer').style.display = 'none';
+
+        // 시간 초과 안내
+        const banner = document.getElementById('memoryTurnBanner');
+        if (expiredTurn === socket.id) {
+            banner.innerText = '⏰ 시간 초과! 턴이 넘어갑니다...';
+        }
+    });
+
+    // ── 카드 클릭 ──
+    function memoryOnCardClick(index) {
+        if (!memoryMyTurn) return;
+        if (memoryMatched.has(index)) return;
+        if (memoryFaceUp[index]) return;
+        socket.emit('memory_card_click', index);
+    }
+
+    // ── 서버: 카드 공개 ──
+    socket.on('memory_card_flipped', ({ index, emoji }) => {
+        memoryFaceUp[index] = true;
+        memoryDeck[index] = emoji; // 서버에서 내려준 정답 반영
+        const cardEl = document.querySelector(`.mg-card[data-idx="${index}"]`);
+        if (cardEl) {
+            cardEl.querySelector('.mg-card__front').innerText = emoji;
+            cardEl.classList.add('face-up');
+        }
+    });
+
+    // ── 서버: 매칭 성공 ──
+    socket.on('memory_match', ({ indices, playerId, scores }) => {
+        indices.forEach(idx => {
+            memoryMatched.add(idx);
+            const el = document.querySelector(`.mg-card[data-idx="${idx}"]`);
+            if (el) { el.classList.add('matched'); el.classList.remove('face-up'); }
+        });
+        // 점수 갱신
+        for (const id in scores) {
+            const scoreEl = document.getElementById(`mg-score-val-${id}`);
+            if (scoreEl) scoreEl.innerText = scores[id];
+            // active-player 강조 업데이트
+            const item = document.getElementById(`mg-score-item-${id}`);
+            if (item) item.classList.toggle('active-player', playerId === id);
+        }
+    });
+
+    // ── 서버: 매칭 실패 → 뒤집기 ──
+    socket.on('memory_no_match', ({ indices }) => {
+        indices.forEach(idx => {
+            memoryFaceUp[idx] = false;
+            const el = document.querySelector(`.mg-card[data-idx="${idx}"]`);
+            if (el) el.classList.remove('face-up');
+        });
+    });
+
+    // ── 그리드 렌더 ──
+    function memoryRenderGrid(allFaceUp) {
+        const grid = document.getElementById('memoryGrid');
+        grid.innerHTML = '';
+        memoryDeck.forEach((emoji, i) => {
+            const card = document.createElement('div');
+            card.className = 'mg-card' + (allFaceUp ? ' face-up' : '');
+            card.dataset.idx = i;
+            card.innerHTML = `
+                <div class="mg-card__inner">
+                    <div class="mg-card__back"></div>
+                    <div class="mg-card__front">${allFaceUp ? emoji : ''}</div>
+                </div>`;
+            if (!allFaceUp) card.addEventListener('click', () => memoryOnCardClick(i));
+            grid.appendChild(card);
+        });
+    }
+
+    // ── 점수판 갱신 ──
+    function memoryUpdateScoreBoard(users) {
+        const board = document.getElementById('memoryScoreBoard');
+        if (!board || !document.getElementById('memoryWrapper').style.display.includes('block')) return;
+        board.innerHTML = '';
+        for (const id in users) {
+            const u = users[id];
+            const item = document.createElement('div');
+            item.className = 'mg-score-item';
+            item.id = `mg-score-item-${id}`;
+            item.innerHTML = `
+                <span class="mg-score-name">${u.userName}</span>
+                <span class="mg-score-val" id="mg-score-val-${id}">${u.score || 0}</span>
+            `;
+            board.appendChild(item);
+        }
+    }
+
+    // ── 메모리 게임 초기화 ──
+    function memoryReset() {
+        if (memoryRevealInterval) clearInterval(memoryRevealInterval);
+        if (memoryGameTimerInterval) { clearInterval(memoryGameTimerInterval); memoryGameTimerInterval = null; }
+        if (memoryTurnTimerInterval) { clearInterval(memoryTurnTimerInterval); memoryTurnTimerInterval = null; }
+        document.getElementById('memoryWrapper').style.display = 'none';
+        document.getElementById('memoryGrid').innerHTML = '';
+        document.getElementById('memoryScoreBoard').innerHTML = '';
+        document.getElementById('memoryRevealTimer').style.display = 'none';
+        document.getElementById('memoryTurnTimer').style.display = 'none';
+        document.getElementById('memoryTurnTimer').classList.remove('urgent');
+        document.getElementById('memoryGameTimer').classList.remove('urgent');
+        document.getElementById('memoryGameTimerVal').innerText = '--';
+        document.getElementById('memoryTurnBanner').innerText = '잠시 후 게임이 시작됩니다...';
+        memoryDeck = []; memoryFaceUp = {}; memoryMatched = new Set();
+        memoryMyTurn = false;
+    }
 </script>
 </body>
 </html>
