@@ -166,7 +166,6 @@
 
         <div id="gameControlBtns">
         <button id="readyBtn" onclick="toggleReady()">준비하기 (Ready)</button>
-        <button id="leaveBtn" class="btn-sub btn-back" onclick="leaveRoom()">← 방 나가기</button>
         </div>
         <h2 id="gameNameDisplay"></h2>
         <div id="timer"><span id="timeDisplay">3</span></div>
@@ -194,6 +193,26 @@
     <h1 id="popupTitle" class="popup-title"></h1>
     <p id="popupDesc" class="popup-desc" style="font-size:24px; color:white; margin-bottom:40px;"></p>
     <button class="btn-main" style="width: 200px;" onclick="closePopup()">확인</button>
+</div>
+
+<div id="leavePopup" style="
+    display:none;
+    position: fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background: rgba(0,0,0,0.85);
+    z-index:999;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+">
+    <h1 id="leaveTitle" class="popup-title"></h1>
+    <p id="leaveDesc" class="popup-desc" style="font-size:24px; color:white; margin-bottom:40px;"></p>
+
+    <div style="display:flex; gap:10px;">
+        <button id="confirmLeaveBtn" class="btn-main" style="width: 150px;">나가기</button>
+        <button id="cancelLeaveBtn" class="btn-sub" style="width: 150px;">취소</button>
+    </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -576,9 +595,26 @@
         resultStep++;
         showResultStep();
     }
+
     function leaveRoom() {
-        if (confirm("쫄?")) { location.reload(); }
+        const pTitle = document.getElementById('leaveTitle');
+        const pDesc = document.getElementById('leaveDesc');
+
+        pTitle.innerText = "쫄?";
+        pTitle.className = "popup-title lose-text";
+        pDesc.innerText = "이걸 나가네";
+
+        document.getElementById('leavePopup').style.display = 'flex';
+
+        document.getElementById('confirmLeaveBtn').onclick = () => {
+            location.reload();
+        };
+
+        document.getElementById('cancelLeaveBtn').onclick = () => {
+            document.getElementById('leavePopup').style.display = 'none';
+        };
     }
+
     function goBackToLanding() { changeScreen('screen-landing'); }
 </script>
 </body>
