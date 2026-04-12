@@ -429,16 +429,11 @@
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
-<script src="/socket.io/socket.io.js"></script>
 <script>
     // ════════════════════════════════════════════
     //  기본 변수
     // ════════════════════════════════════════════
-    // ════════════════════════════════════════════
-    //  기본 변수
-    // ════════════════════════════════════════════
     const socket = io();
-
 
     const deadMessages = [
         "괜찮아요 게임 좀 못할 수도 있죠. 마우스 쥐는 법 부터 다시 배워 볼까요?",
@@ -451,28 +446,19 @@
 
     let myName = "", isMyReady = false, countdownInterval;
     let resultStep = 0, lastResultData = null, currentBet = null;
-
-    let myName = "", isMyReady = false, countdownInterval;
-    let resultStep = 0, lastResultData = null, currentBet = null;
     let currentGameMode = null;
     let avoidGameActive = false, renderLoopActive = false, avoidEnemies = [], playerPos = { x: 175, y: 175 };
     let reactionStartTime = 0, reactionState = 'DISABLED';
     let isFouler = false;
 
     const screens     = document.querySelectorAll('.screen');
-    const screens     = document.querySelectorAll('.screen');
     const avoidCanvas = document.getElementById('avoidCanvas');
-    const avoidCtx    = avoidCanvas.getContext('2d');
     const avoidCtx    = avoidCanvas.getContext('2d');
     const reactionArea = document.getElementById('reactionArea');
 
     // 드래그 선택 방지
-    // 드래그 선택 방지
     document.addEventListener('dragstart', e => e.preventDefault());
 
-    // ════════════════════════════════════════════
-    //  화면 전환
-    // ════════════════════════════════════════════
     // ════════════════════════════════════════════
     //  화면 전환
     // ════════════════════════════════════════════
@@ -490,7 +476,6 @@
 
     function createRoom() { performJoin(Math.random().toString(36).substring(2, 6).toUpperCase()); }
 
-
     function showJoinInput() {
         const area = document.getElementById('join-input-area');
         area.style.display = area.style.display === 'block' ? 'none' : 'block';
@@ -502,13 +487,10 @@
         socket.emit('check_room', code, (exists) => {
             if (exists) performJoin(code);
             else alert("존재하지 않는 방 코드입니다.");
-            if (exists) performJoin(code);
-            else alert("존재하지 않는 방 코드입니다.");
         });
     }
 
     function performJoin(code) {
-        document.getElementById('chatBox').innerHTML = '';
         document.getElementById('chatBox').innerHTML = '';
         socket.emit('join_room', { roomName: code, userName: myName });
         document.getElementById('roomTitle').innerText = `ROOM : ${code}`;
@@ -520,42 +502,29 @@
     // ════════════════════════════════════════════
     //  UI 초기화
     // ════════════════════════════════════════════
-    function goBackToLanding() { changeScreen('screen-landing'); }
-
-    // ════════════════════════════════════════════
-    //  UI 초기화
-    // ════════════════════════════════════════════
     function resetUI() {
         clearInterval(countdownInterval);
         isFouler = false;
-
 
         const readyBtn = document.getElementById('readyBtn');
         readyBtn.innerText = "준비하기 (Ready)";
         readyBtn.style.backgroundColor = "var(--btn-green)";
         readyBtn.style.color = "#3a0002";
 
-
         document.getElementById('gameControlBtns').style.display = 'block';
         document.getElementById('myBet').parentElement.style.display = currentBet ? 'none' : 'block';
-
 
         const nameDisp = document.getElementById('gameNameDisplay');
         nameDisp.style.display = 'none'; nameDisp.style.margin = '0';
 
-
         const clickBtn = document.getElementById('clickBtn');
         clickBtn.style.display = 'none'; clickBtn.style.margin = '0';
-
 
         const timerDiv = document.getElementById('timer');
         timerDiv.style.display = 'none'; timerDiv.style.margin = '0';
 
-
         avoidCanvas.style.display = 'none';
         document.getElementById('avoidWrapper').style.display = 'none';
-        document.getElementById('deadOverlay').style.display = 'none';
-
         document.getElementById('deadOverlay').style.display = 'none';
 
         reactionArea.style.display = 'none'; reactionArea.style.margin = '0';
@@ -564,21 +533,14 @@
         reactionArea.className = 'rect-wait';
         reactionState = 'DISABLED';
 
-        reactionArea.className = 'rect-wait';
-        reactionState = 'DISABLED';
-
         avoidGameActive = false;
         renderLoopActive = false;
         isMyReady = false;
 
         // 메모리 게임 초기화
-        // 메모리 게임 초기화
         memoryReset();
     }
 
-    // ════════════════════════════════════════════
-    //  준비 / 내기
-    // ════════════════════════════════════════════
     // ════════════════════════════════════════════
     //  준비 / 내기
     // ════════════════════════════════════════════
@@ -599,19 +561,13 @@
     // ════════════════════════════════════════════
     //  소켓 이벤트 — 유저 목록 / 내기
     // ════════════════════════════════════════════
-    // ════════════════════════════════════════════
-    //  소켓 이벤트 — 유저 목록 / 내기
-    // ════════════════════════════════════════════
     socket.on('update_users', (users) => {
-        const ul = document.getElementById('userUl');
-        ul.innerHTML = '';
         const ul = document.getElementById('userUl');
         ul.innerHTML = '';
         for (const id in users) {
             const u = users[id];
             const li = document.createElement('li');
             const status = u.ready ? '<span class="ready-status">[준비완료]</span>' : '<span class="not-ready">[대기중]</span>';
-            const dead   = u.isDead ? '<span style="color:gray;">(탈락)</span>' : '';
             const dead   = u.isDead ? '<span style="color:gray;">(탈락)</span>' : '';
             li.innerHTML = `${status} ${u.userName} ${dead} <span style="float:right; color:#ffeb3b;"><b>${u.winCount || 0}승</b></span>`;
             ul.appendChild(li);
@@ -635,30 +591,12 @@
     // ════════════════════════════════════════════
     //  소켓 이벤트 — 게임 흐름
     // ════════════════════════════════════════════
-    socket.on('room_bet_update', (bet) => {
-        currentBet = bet;
-        const betWrapper = document.getElementById('myBet').parentElement;
-        if (bet) {
-            document.getElementById('bigBetDisplay').innerText = `🔥 ${bet} 내기`;
-            betWrapper.style.display = 'none';
-        } else {
-            document.getElementById('bigBetDisplay').innerText = '';
-            document.getElementById('myBet').value = '';
-            betWrapper.style.display = 'block';
-        }
-    });
-
-    // ════════════════════════════════════════════
-    //  소켓 이벤트 — 게임 흐름
-    // ════════════════════════════════════════════
     socket.on('game_selected', (mode) => {
         currentGameMode = mode;
         document.getElementById('gameControlBtns').style.display = 'none';
         document.getElementById('myBet').parentElement.style.display = 'none';
 
-
         const title = document.getElementById('gameNameDisplay');
-        if      (mode === 'CLICK')    title.innerText = "🔥 광클 대결! 🔥";
         if      (mode === 'CLICK')    title.innerText = "🔥 광클 대결! 🔥";
         else if (mode === 'AVOID')    title.innerText = "🏃 공 피하기! 🏃";
         else if (mode === 'REACTION') title.innerText = "⚡ 반응속도 테스트! ⚡";
@@ -676,7 +614,6 @@
             reactionArea.style.margin = '0';
             reactionArea.className = 'rect-wait';
             reactionArea.innerText = "대기...";
-            // ✅ 여기서는 DISABLED 유지 — game_start에서 WAIT으로 바꿈
             // ✅ 여기서는 DISABLED 유지 — game_start에서 WAIT으로 바꿈
             reactionState = 'DISABLED';
             isFouler = false;
@@ -710,24 +647,16 @@
         let timeLeft = duration;
         timeDisplay.innerText = timeLeft;
 
-        let timeLeft = duration;
-        timeDisplay.innerText = timeLeft;
-
         if (mode === 'CLICK') {
             const btn = document.getElementById('clickBtn');
-            btn.disabled = false;
-            btn.innerText = '클릭!';
-
             btn.disabled = false;
             btn.innerText = '클릭!';
 
         } else if (mode === 'AVOID') {
             avoidGameActive = true;
 
-
         } else if (mode === 'REACTION') {
             document.getElementById('timer').style.display = 'none';
-            // ✅ game_start 시점에 WAIT으로 전환 (reaction_go 수신 준비)
             // ✅ game_start 시점에 WAIT으로 전환 (reaction_go 수신 준비)
             reactionState = 'WAIT';
             isFouler = false;
@@ -735,11 +664,8 @@
             reactionArea.innerText = "초록색이 되면 탭!";
             reactionArea.style.display = 'flex';
 
-            reactionArea.style.display = 'flex';
-
         } else if (mode === 'MEMORY') {
             document.getElementById('timer').style.display = 'none';
-            // 게임 전체 제한 시간 카운트다운 (공개 5초 이후부터)
             // 게임 전체 제한 시간 카운트다운 (공개 5초 이후부터)
             let gameTimeLeft = duration;
             const gameTimerVal = document.getElementById('memoryGameTimerVal');
@@ -751,19 +677,11 @@
                     gameTimerVal.innerText = gameTimeLeft;
                     if (gameTimeLeft <= 30) gameTimerBox.classList.add('urgent');
                     if (gameTimeLeft <= 0) { clearInterval(memoryGameTimerInterval); memoryGameTimerInterval = null; }
-                    if (gameTimeLeft <= 0) { clearInterval(memoryGameTimerInterval); memoryGameTimerInterval = null; }
                 }, 1000);
-            }, 5000); // 공개 5초 후 시작
-            return;
             }, 5000); // 공개 5초 후 시작
             return;
         }
 
-        countdownInterval = setInterval(() => {
-            timeLeft--;
-            if (mode !== 'REACTION') timeDisplay.innerText = timeLeft;
-            if (timeLeft <= 0) { clearInterval(countdownInterval); avoidGameActive = false; }
-        }, 1000);
         countdownInterval = setInterval(() => {
             timeLeft--;
             if (mode !== 'REACTION') timeDisplay.innerText = timeLeft;
@@ -776,18 +694,11 @@
     // ════════════════════════════════════════════
 
     // ✅ reaction_go: WAIT이면 GO로, DISABLED이면 WAIT 거쳐 GO로 (타이밍 방어)
-    // ════════════════════════════════════════════
-    //  소켓 이벤트 — 반응속도 게임
-    // ════════════════════════════════════════════
-
-    // ✅ reaction_go: WAIT이면 GO로, DISABLED이면 WAIT 거쳐 GO로 (타이밍 방어)
     socket.on('reaction_go', () => {
-        if (reactionState === 'DISABLED') reactionState = 'WAIT';
         if (reactionState === 'DISABLED') reactionState = 'WAIT';
         if (reactionState === 'WAIT') {
             reactionState = 'GO';
             reactionArea.className = 'rect-go';
-            reactionArea.style.display = 'flex';
             reactionArea.style.display = 'flex';
             reactionArea.innerText = "지금 탭!!!";
             reactionStartTime = Date.now();
@@ -802,7 +713,6 @@
         reactionArea.innerText = "탈락 😵";
         document.getElementById('reactionDeadMsg').innerText = "탈락! 😵\n결과를 기다리는 중...";
         document.getElementById('reactionDeadOverlay').style.display = 'flex';
-        document.getElementById('reactionDeadOverlay').style.display = 'flex';
     });
 
     socket.on('reaction_eliminated', () => {
@@ -811,22 +721,8 @@
         reactionArea.innerText = "탈락 😵";
         document.getElementById('reactionDeadMsg').innerText = "탈락! 😵\n결과를 기다리는 중...";
         document.getElementById('reactionDeadOverlay').style.display = 'flex';
-        document.getElementById('reactionDeadOverlay').style.display = 'flex';
     });
 
-    function handleReactionClick() {
-        if (reactionState === 'DISABLED') return;
-        if (reactionState === 'WAIT') {
-            reactionState = 'DISABLED';
-            reactionArea.className = 'rect-foul';
-            reactionArea.innerText = "부정출발! (실격)";
-            isFouler = true;
-            socket.emit('reaction_result', -1);
-        } else if (reactionState === 'GO') {
-            const diff = Date.now() - reactionStartTime;
-            reactionState = 'DISABLED';
-            reactionArea.innerText = `${diff}ms!`;
-            socket.emit('reaction_result', diff);
     function handleReactionClick() {
         if (reactionState === 'DISABLED') return;
         if (reactionState === 'WAIT') {
@@ -841,12 +737,6 @@
             reactionArea.innerText = `${diff}ms!`;
             socket.emit('reaction_result', diff);
         }
-    }
-
-    // ════════════════════════════════════════════
-    //  소켓 이벤트 — 게임 종료
-    // ════════════════════════════════════════════
-    socket.on('game_over', ({ winners, winnerIds, maxScore, mode, isFinal, finalWinner, isTimeout }) => {
     }
 
     // ════════════════════════════════════════════
@@ -861,7 +751,6 @@
         }
         const isDraw = winners && winners.length > 1;
         lastResultData = { winners: winners || [], maxScore, mode, isWinner, isFinal, finalWinner, isDraw, isFouler, isTimeout };
-        lastResultData = { winners: winners || [], maxScore, mode, isWinner, isFinal, finalWinner, isDraw, isFouler, isTimeout };
         resultStep = 0;
         showResultStep();
     });
@@ -869,13 +758,8 @@
     // ════════════════════════════════════════════
     //  결과 팝업
     // ════════════════════════════════════════════
-    // ════════════════════════════════════════════
-    //  결과 팝업
-    // ════════════════════════════════════════════
     function showResultStep() {
         const pTitle = document.getElementById('popupTitle');
-        const pDesc  = document.getElementById('popupDesc');
-        const data   = lastResultData;
         const pDesc  = document.getElementById('popupDesc');
         const data   = lastResultData;
 
@@ -885,7 +769,6 @@
                     pTitle.innerText = "🏆 최종 우승! 🏆";
                     pTitle.className = "popup-title win-text";
                     pDesc.innerText = "야르~ 야르~ 야르~";
-                    pDesc.innerText = "야르~ 야르~ 야르~";
                 } else {
                     pTitle.innerText = "ㅋ 이걸 지네";
                     pTitle.className = "popup-title lose-text";
@@ -893,16 +776,9 @@
                 }
             } else {
                 // ✅ isFouler → isDraw → isWinner 순서 중요
-                // ✅ isFouler → isDraw → isWinner 순서 중요
                 if (data.isFouler) {
                     pTitle.innerText = "빨리 탭하기 긁?";
                     pTitle.className = "popup-title lose-text";
-                } else if (data.isDraw) {
-                    pTitle.innerText = "무승부!";
-                    pTitle.className = "popup-title draw-text";
-                } else if (data.isWinner) {
-                    pTitle.innerText = "라운드 승리!";
-                    pTitle.className = "popup-title win-text";
                 } else if (data.isDraw) {
                     pTitle.innerText = "무승부!";
                     pTitle.className = "popup-title draw-text";
@@ -923,28 +799,9 @@
                 } else {
                     desc = "에휴... 한번 더";
                 }
-            if (data.isDraw && !data.isFouler) {
-                // ✅ 반응속도 무승부 (아무도 탭 안 함) vs 일반 무승부
-                if (data.mode === 'REACTION' && (!data.winners || data.winners.length === 0 || data.maxScore === 9999)) {
-                    desc = "시간 내에 아무도 탭하지 않았습니다 😅";
-                } else {
-                    desc = "에휴... 한번 더";
-                }
             } else {
                 desc = `우승자: ${data.winners.join(', ')}`;
             }
-
-            if      (data.mode === 'CLICK')    desc += ` (${data.maxScore}회)`;
-            else if (data.mode === 'REACTION' && !data.isDraw) {
-                desc += (data.maxScore === 9999 || data.maxScore === 99999 || data.maxScore === "없음" || data.maxScore === "실격")
-                    ? " (실패)" : ` (${data.maxScore}ms)`;
-            }
-            else if (data.mode === 'AVOID')    desc += ` (생존)`;
-            else if (data.mode === 'MEMORY') {
-                if (data.isTimeout) desc = `⏰ 시간 초과! ` + desc + ` (${data.maxScore}쌍)`;
-                else desc += ` (${data.maxScore}쌍)`;
-            }
-
 
             if      (data.mode === 'CLICK')    desc += ` (${data.maxScore}회)`;
             else if (data.mode === 'REACTION' && !data.isDraw) {
@@ -982,9 +839,6 @@
     // ════════════════════════════════════════════
     //  방 나가기 팝업 ✅
     // ════════════════════════════════════════════
-    // ════════════════════════════════════════════
-    //  방 나가기 팝업 ✅
-    // ════════════════════════════════════════════
     function leaveRoom() {
         document.getElementById('leaveTitle').innerText = "쫄?";
         document.getElementById('leaveTitle').className = "popup-title lose-text";
@@ -997,13 +851,6 @@
         document.getElementById('cancelLeaveBtn').onclick = () => {
             document.getElementById('leavePopup').style.display = 'none';
         };
-        document.getElementById('confirmLeaveBtn').onclick = () => {
-            socket.emit('leave_room');
-            location.reload();
-        };
-        document.getElementById('cancelLeaveBtn').onclick = () => {
-            document.getElementById('leavePopup').style.display = 'none';
-        };
     }
 
     // ════════════════════════════════════════════
@@ -1068,94 +915,7 @@
         playerPos.x = Math.max(0, Math.min(350, pos.x));
         playerPos.y = Math.max(0, Math.min(350, pos.y));
     }, { passive: false });
-    // ════════════════════════════════════════════
-    //  공 피하기 게임
-    // ════════════════════════════════════════════
-    function getCanvasPos(clientX, clientY) {
-        const rect = avoidCanvas.getBoundingClientRect();
-        const scaleX = avoidCanvas.width / rect.width;
-        const scaleY = avoidCanvas.height / rect.height;
-        return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
-    }
 
-    function initAvoidGameSetup() {
-        renderLoopActive = true; avoidGameActive = false;
-        avoidEnemies = []; playerPos = { x: 175, y: 175 };
-        for (let i = 0; i < 8; i++) {
-            avoidEnemies.push({ x: Math.random()*350, y: Math.random()*350, dx: (Math.random()-0.5)*7, dy: (Math.random()-0.5)*7, r: 6 });
-        }
-        requestAnimationFrame(updateAvoidFrame);
-    }
-
-    function updateAvoidFrame() {
-        if (!renderLoopActive) return;
-        avoidCtx.clearRect(0, 0, 350, 350);
-
-        // ✅ 플레이어 캔버스 밖 못 나가게 클램핑
-        playerPos.x = Math.max(8, Math.min(342, playerPos.x));
-        playerPos.y = Math.max(8, Math.min(342, playerPos.y));
-
-        avoidCtx.beginPath(); avoidCtx.arc(playerPos.x, playerPos.y, 8, 0, Math.PI*2); avoidCtx.fillStyle = '#2196f3'; avoidCtx.fill();
-        avoidCtx.fillStyle = '#ff5252';
-
-        avoidEnemies.forEach(en => {
-            if (avoidGameActive) {
-                en.x += en.dx; en.y += en.dy;
-                // ✅ 적 공도 반지름 기준 정확히 튕기도록
-                if (en.x - en.r < 0)   { en.x = en.r;       en.dx =  Math.abs(en.dx); }
-                if (en.x + en.r > 350) { en.x = 350 - en.r; en.dx = -Math.abs(en.dx); }
-                if (en.y - en.r < 0)   { en.y = en.r;       en.dy =  Math.abs(en.dy); }
-                if (en.y + en.r > 350) { en.y = 350 - en.r; en.dy = -Math.abs(en.dy); }
-            }
-            avoidCtx.beginPath(); avoidCtx.arc(en.x, en.y, en.r, 0, Math.PI*2); avoidCtx.fill();
-            if (avoidGameActive && Math.hypot(playerPos.x - en.x, playerPos.y - en.y) < 14) {
-                avoidGameActive = false;
-                socket.emit('player_dead');
-                const msgTag = document.getElementById('deadMsg');
-                msgTag.innerText = deadMessages[Math.floor(Math.random() * deadMessages.length)];
-                document.getElementById('deadOverlay').style.display = 'flex';
-            }
-        });
-        requestAnimationFrame(updateAvoidFrame);
-    }
-
-    avoidCanvas.addEventListener('mousemove', (e) => {
-        const pos = getCanvasPos(e.clientX, e.clientY);
-        playerPos.x = Math.max(0, Math.min(350, pos.x));
-        playerPos.y = Math.max(0, Math.min(350, pos.y));
-    });
-    avoidCanvas.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        const pos = getCanvasPos(e.touches[0].clientX, e.touches[0].clientY);
-        playerPos.x = Math.max(0, Math.min(350, pos.x));
-        playerPos.y = Math.max(0, Math.min(350, pos.y));
-    }, { passive: false });
-
-    // ════════════════════════════════════════════
-    //  클릭 게임
-    // ════════════════════════════════════════════
-    function sendClick() {
-        if (!document.getElementById('clickBtn').disabled) socket.emit('click_action');
-    }
-
-    // ════════════════════════════════════════════
-    //  채팅
-    // ════════════════════════════════════════════
-    function sendMessage() {
-        const input = document.getElementById('chatInput');
-        if (input.value.trim()) { socket.emit('send_message', input.value); input.value = ''; }
-    }
-    socket.on('chat_message', (data) => {
-        const p = document.createElement('p'); p.style.margin = '5px 0';
-        p.innerHTML = `<b style="color:var(--point-color)">${data.user}:</b> ${data.text}`;
-        document.getElementById('chatBox').appendChild(p);
-        document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
-    });
-
-    // ════════════════════════════════════════════
-    //  MEMORY GAME 클라이언트 로직
-    // ════════════════════════════════════════════
-    let memoryDeck = [], memoryFaceUp = {}, memoryMatched = new Set();
     // ════════════════════════════════════════════
     //  클릭 게임
     // ════════════════════════════════════════════
@@ -1185,8 +945,6 @@
     let memoryRevealInterval = null;
     let memoryGameTimerInterval = null;
     let memoryTurnTimerInterval = null;
-    let memoryGameTimerInterval = null;
-    let memoryTurnTimerInterval = null;
 
     socket.on('memory_init', ({ deck }) => {
         memoryDeck = deck;
@@ -1198,8 +956,6 @@
     });
 
     function memoryStartRevealCountdown() {
-        const banner   = document.getElementById('memoryTurnBanner');
-        const revDiv   = document.getElementById('memoryRevealTimer');
         const banner   = document.getElementById('memoryTurnBanner');
         const revDiv   = document.getElementById('memoryRevealTimer');
         const revCount = document.getElementById('memoryRevealCount');
@@ -1215,7 +971,6 @@
                 revDiv.style.display = 'none';
                 banner.innerText = '카드를 뒤집는 중...';
                 memoryRenderGrid(false);
-                memoryRenderGrid(false);
                 socket.emit('memory_reveal_done');
             }
         }, 1000);
@@ -1227,10 +982,7 @@
         const banner = document.getElementById('memoryTurnBanner');
         banner.innerText = memoryMyTurn ? '✨ 내 턴! 카드를 선택하세요' : `⏳ ${currentName}의 턴`;
         document.getElementById('memoryGrid').classList.toggle('my-turn', memoryMyTurn);
-        banner.innerText = memoryMyTurn ? '✨ 내 턴! 카드를 선택하세요' : `⏳ ${currentName}의 턴`;
-        document.getElementById('memoryGrid').classList.toggle('my-turn', memoryMyTurn);
 
-        // 내 턴 카운트다운
         // 내 턴 카운트다운
         const turnTimerBox = document.getElementById('memoryTurnTimer');
         const turnTimerVal = document.getElementById('memoryTurnTimerVal');
@@ -1247,14 +999,12 @@
                 turnTimerVal.innerText = turnLeft;
                 if (turnLeft <= 3) turnTimerBox.classList.add('urgent');
                 if (turnLeft <= 0) { clearInterval(memoryTurnTimerInterval); memoryTurnTimerInterval = null; }
-                if (turnLeft <= 0) { clearInterval(memoryTurnTimerInterval); memoryTurnTimerInterval = null; }
             }, 1000);
         } else {
             turnTimerBox.style.display = 'none';
         }
     });
 
-    // ── 턴 시간 초과 ──
     // ── 턴 시간 초과 ──
     socket.on('memory_turn_timeout', ({ expiredTurn }) => {
         for (const idx in memoryFaceUp) {
@@ -1269,7 +1019,6 @@
         document.getElementById('memoryTurnTimer').style.display = 'none';
         if (expiredTurn === socket.id) {
             document.getElementById('memoryTurnBanner').innerText = '⏰ 시간 초과! 턴이 넘어갑니다...';
-            document.getElementById('memoryTurnBanner').innerText = '⏰ 시간 초과! 턴이 넘어갑니다...';
         }
     });
 
@@ -1283,7 +1032,6 @@
 
     socket.on('memory_card_flipped', ({ index, emoji }) => {
         memoryFaceUp[index] = true;
-        memoryDeck[index] = emoji;
         memoryDeck[index] = emoji;
         const cardEl = document.querySelector(`.mg-card[data-idx="${index}"]`);
         if (cardEl) {
@@ -1334,7 +1082,6 @@
     function memoryUpdateScoreBoard(users) {
         const board = document.getElementById('memoryScoreBoard');
         if (!board || document.getElementById('memoryWrapper').style.display !== 'block') return;
-        if (!board || document.getElementById('memoryWrapper').style.display !== 'block') return;
         board.innerHTML = '';
         for (const id in users) {
             const u = users[id];
@@ -1344,17 +1091,14 @@
             item.innerHTML = `
                 <span class="mg-score-name">${u.userName}</span>
                 <span class="mg-score-val" id="mg-score-val-${id}">${u.score || 0}</span>`;
-                <span class="mg-score-val" id="mg-score-val-${id}">${u.score || 0}</span>`;
             board.appendChild(item);
         }
     }
 
     function memoryReset() {
         if (memoryRevealInterval)    { clearInterval(memoryRevealInterval);    memoryRevealInterval = null; }
-        if (memoryRevealInterval)    { clearInterval(memoryRevealInterval);    memoryRevealInterval = null; }
         if (memoryGameTimerInterval) { clearInterval(memoryGameTimerInterval); memoryGameTimerInterval = null; }
         if (memoryTurnTimerInterval) { clearInterval(memoryTurnTimerInterval); memoryTurnTimerInterval = null; }
-
 
         document.getElementById('memoryWrapper').style.display = 'none';
         document.getElementById('memoryGrid').innerHTML = '';
@@ -1365,7 +1109,6 @@
         document.getElementById('memoryGameTimer').classList.remove('urgent');
         document.getElementById('memoryGameTimerVal').innerText = '--';
         document.getElementById('memoryTurnBanner').innerText = '잠시 후 게임이 시작됩니다...';
-
 
         memoryDeck = []; memoryFaceUp = {}; memoryMatched = new Set();
         memoryMyTurn = false;
