@@ -130,19 +130,21 @@
         .btn-sub { background-color: rgba(255,255,255,0.15); color: white; border: 2px solid rgba(255,255,255,0.5); backdrop-filter: blur(4px); }
         .btn-back { margin-top: 15px; border-color: rgba(255, 255, 255, 0.3); color: #ccc; font-size: 20px; }
         
+        .rect-wait { background-color: #f44336; color: white; } /* 대기 상태 (빨간색) */
+        .rect-go   { background-color: #4caf50; color: white; box-shadow: 0 0 20px rgba(76, 175, 80, 0.6); } /* 클릭 타이밍 (초록색 + 빛나는 효과) */
+        .rect-foul { background-color: #757575; color: #ccc; }  /* 실패 및 종료 (회색) */
+
         .screen { display: none; }
         .active  { display: block; animation: fadeIn 0.4s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        #gameNameDisplay { font-size: 36px; color: var(--point-color); margin: 0; display: none; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
-        #usersList { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 20px; text-align: left; margin-bottom: 15px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.15);}
+        #gameNameDisplay { font-size: 36px; color: var(--point-color); margin: 0; display: none; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); text-align: center; }        #usersList { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 20px; text-align: left; margin-bottom: 15px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.15);}
         #userUl { list-style: none; padding: 0; margin: 0; }
         #userUl li { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 20px; }
         .ready-status { color: #81c784; }
         .not-ready    { color: #e57373; }
 
-        #timer { font-size: 80px; color: var(--point-color); display: none; margin: 0; animation: pulse 1s infinite; text-shadow: 0 0 20px rgba(255,235,59,0.6); }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        #timer { font-size: 80px; color: var(--point-color); display: none; margin: 0; animation: pulse 1s infinite; text-shadow: 0 0 20px rgba(255,235,59,0.6); text-align: center; }        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
         
         #clickBtn { font-size: 50px; padding: 40px; background: radial-gradient(circle, #ff5e5e 0%, #c62828 100%); display: none; border-radius: 30px; color: white; box-shadow: 0 10px 0px #8e0000; width: 100%; margin: 0; }
         #clickBtn:disabled { background: #555; box-shadow: 0 10px 0px #333; color: #aaa; cursor: not-allowed; }
