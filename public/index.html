@@ -26,6 +26,13 @@
             overflow-x: hidden;
         }
 
+        .container {
+        width: 100%;
+        max-width: 420px;
+        padding: 0 12px;
+        box-sizing: border-box;
+        }
+
         /* 배경 장식 텍스트 */
         .bg-deco {
             position: fixed;
@@ -76,7 +83,7 @@
         /* 양옆 ㅋㅋㅋ */
         .logo-kk {
             font-family: 'Do Hyeon', sans-serif;
-            font-size: 100px;
+            font-size: clamp(40px, 12vw, 100px);
             color: #ffdd33;
             text-shadow: 0px 5px 0 #cc7a00, 0px 9px 0 #a85500, 0px 18px 16px rgba(0,0,0,0.35);
             line-height: 1;
@@ -87,7 +94,7 @@
         .logo-kk-right { animation: floatKKRight 3.4s ease-in-out 0.5s infinite; }
 
         .app-logo {
-            font-size: 130px; margin: 0 8px; color: #ffdd33; display: inline-block;
+            font-size: clamp(50px, 15vw, 130px); margin: 0 8px; color: #ffdd33; display: inline-block;
             text-shadow: 0px 6px 0 #cc7a00, 0px 12px 0 #b35f00, 0px 24px 20px rgba(0,0,0,0.4);
             line-height: 1;
             position: relative; z-index: 1;
@@ -304,6 +311,85 @@
         .mg-score-name { font-size: 13px; color: rgba(255,255,255,0.6); }
         .mg-score-val  { font-size: 26px; color: var(--point-color); font-weight: bold; }
         .mg-score-item.active-player .mg-score-name { color: var(--point-color); }
+
+        /* ───────── 모바일 최적화 ───────── */
+    @media (max-width: 480px) {
+
+        body {
+            padding: 10px 0;
+        }
+
+        .logo-kk {
+            font-size: 60px;
+        }
+
+        .app-logo {
+            font-size: 80px;
+        }
+
+        .logo-row {
+            padding: 20px 0;
+        }
+
+        input[type="text"] {
+            font-size: 16px;
+            padding: 12px;
+        }
+
+        button {
+            font-size: 18px;
+            padding: 12px;
+        }
+
+        #gameNameDisplay {
+            font-size: 24px;
+        }
+
+        #timer {
+            font-size: 50px;
+        }
+
+        #clickBtn {
+            font-size: 30px;
+            padding: 25px;
+        }
+
+        #reactionArea {
+            height: 260px;
+            font-size: 24px;
+        }
+
+        #avoidCanvas {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 1;
+        }
+
+        /* 메모리 카드 */
+        #memoryGrid {
+            gap: 6px;
+        }
+
+        .mg-card__front,
+        .mg-card__back {
+            font-size: 1.2rem;
+        }
+
+        /* 채팅 */
+        .chat-box {
+            height: 80px;
+            font-size: 14px;
+        }
+
+        #chatInput {
+            font-size: 14px;
+        }
+
+        /* 결과 팝업 */
+        .popup-title {
+            font-size: 40px;
+        }
+    }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
 </head>
