@@ -21,14 +21,14 @@
 
         /* 모바일 배경 고정: html에 배경을 두고 fixed로 고정 */
         html {
-            background: radial-gradient(circle at center, var(--bg-blue) 0%, #06073a 100%);
-            background-attachment: fixed;
             min-height: 100%;
+            overflow-x: hidden;
         }
 
         body {
             font-family: 'Do Hyeon', sans-serif;
-            background: transparent; /* html 배경을 그대로 사용 */
+            background: radial-gradient(circle at center, var(--bg-blue) 0%, #06073a 100%);
+            background-attachment: fixed;
             color: var(--text-color);
             margin: 0;
             padding: 0;
@@ -38,8 +38,9 @@
             overflow-y: auto;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             position: relative;
+            box-sizing: border-box;
         }
 
         .container {
@@ -47,6 +48,16 @@
         max-width: 420px;
         padding: 0 12px;
         box-sizing: border-box;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        }
+
+        .container.game-active {
+        justify-content: flex-start;
+        padding-top: 20px;
+        padding-bottom: 20px;
         }
 
         /* 배경 장식 텍스트 */
@@ -332,7 +343,7 @@
     @media (max-width: 480px) {
 
         body {
-            padding: 10px 0;
+            padding: 15px 0;
         }
 
         .logo-kk {
@@ -575,6 +586,7 @@
     function changeScreen(id) {
         screens.forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+        document.querySelector('.container').classList.toggle('game-active', id === 'screen-game');
     }
 
     function goToMenu() {
