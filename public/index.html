@@ -19,16 +19,17 @@
             -webkit-user-select: none;
         }
 
-        /* 모바일 배경 고정: html에 배경을 두고 fixed로 고정 */
+        /* html에 배경 고정 — iOS Safari에서 body fixed는 버그 유발 */
         html {
             min-height: 100%;
             overflow-x: hidden;
+            background: radial-gradient(circle at center, #1a6ee8 0%, #06073a 100%);
+            background-attachment: fixed;
         }
 
         body {
             font-family: 'Do Hyeon', sans-serif;
-            background: radial-gradient(circle at center, var(--bg-blue) 0%, #06073a 100%);
-            background-attachment: fixed;
+            background: transparent; /* html의 배경을 사용 */
             color: var(--text-color);
             margin: 0;
             padding: 0;
@@ -44,20 +45,28 @@
         }
 
         .container {
-        width: 100%;
-        max-width: 420px;
-        padding: 0 12px;
-        box-sizing: border-box;
-        min-height: 100dvh;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+            width: 100%;
+            max-width: 420px;
+            padding: 0 12px;
+            padding-top: max(40px, 8dvh);
+            padding-bottom: 40px;
+            box-sizing: border-box;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .container.landing-active {
+            justify-content: center;
+            padding-top: 0;
+            padding-bottom: 0;
         }
 
         .container.game-active {
-        justify-content: flex-start;
-        padding-top: 20px;
-        padding-bottom: 20px;
+            justify-content: flex-start;
+            padding-top: 20px;
+            padding-bottom: 20px;
         }
 
         /* 배경 장식 텍스트 */
@@ -356,7 +365,7 @@
 <div class="bg-deco" style="font-size:30px; top:90%; left:5%; transform:rotate(-6deg);">gg</div>
 <div class="bg-deco" style="font-size:32px; top:87%; right:5%; transform:rotate(7deg);">쫄지마</div>
 
-<div class="container">
+<div class="container landing-active">
     <div class="logo-wrapper">
         <div class="logo-stripe logo-stripe-top"></div>
         <div class="logo-row">
@@ -502,7 +511,9 @@
     function changeScreen(id) {
         screens.forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        document.querySelector('.container').classList.toggle('game-active', id === 'screen-game');
+        const container = document.querySelector('.container');
+        container.classList.toggle('game-active', id === 'screen-game');
+        container.classList.toggle('landing-active', id === 'screen-landing');
     }
 
     function goToMenu() {
