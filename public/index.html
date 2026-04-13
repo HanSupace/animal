@@ -131,9 +131,9 @@
             animation: floatLogo 3s ease-in-out 0.2s infinite;
         }
         #reactionArea {
-            display: none; width: 100%; max-width: 350px; height: 350px; margin: 0 auto; border-radius: 20px;
-            justify-content: center; align-items: center; font-size: 32px; font-weight: bold; cursor: pointer; user-select: none; transition: background-color 0.1s;
-        }
+    display: none; width: 100%; max-width: 350px; min-height: 350px; height: auto; margin: 0 auto !important; border-radius: 20px;
+    justify-content: center; align-items: center; text-align: center; font-size: 32px; font-weight: bold; cursor: pointer; user-select: none; transition: background-color 0.1s; word-break: keep-all;
+}
         @keyframes float      { 0%, 100% { transform: translateY(0px);              } 50% { transform: translateY(-15px);              } }
         @keyframes floatLogo  { 0%, 100% { transform: rotate(15deg) translateY(0px); } 50% { transform: rotate(15deg) translateY(-18px); } }
         @keyframes floatKKLeft  {
@@ -398,9 +398,9 @@
             </div>
         </div>
 
-        <div id="reactionWrapper" style="position: relative; width: 100%; max-width: 350px; margin: 0 auto; display: none;">
+        <div id="reactionWrapper" style="position: relative; width: 100%; max-width: 350px; min-height: 350px; margin: 0 auto; display: none; flex-direction: column;">
             <div id="reactionArea" onclick="handleReactionClick()">화면이 초록색이 되면 클릭!</div>
-            <div id="reactionDeadOverlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); border-radius:20px; flex-direction:column; justify-content:center; align-items:center; z-index:100; text-align:center;">
+            <div id="reactionDeadOverlay" style="display:none; position:absolute; top:0; left:0; width:100%; min-height:100%; height:100%; background:rgba(0,0,0,0.85); border-radius:20px; flex-direction:column; justify-content:center; align-items:center; z-index:100; text-align:center;">
                 <div class="spinner"></div>
                 <p id="reactionDeadMsg" style="font-size:22px; color:var(--point-color); line-height:1.4; margin:10px 0;"></p>
                 <p style="font-size:12px; color:#aaa; margin-top:10px;">다른 플레이어의 결과를 기다리는 중...</p>
@@ -534,7 +534,8 @@
         document.getElementById('avoidWrapper').style.display = 'none';
         document.getElementById('deadOverlay').style.display = 'none';
 
-        reactionArea.style.display = 'none'; reactionArea.style.margin = '0';
+        reactionArea.style.display = 'none'; reactionArea.style.margin = ''; reactionArea.style.minHeight = ''; reactionArea.style.padding = '';  
+
         document.getElementById('reactionWrapper').style.display = 'none';
         document.getElementById('reactionDeadOverlay').style.display = 'none';
         reactionArea.className = 'rect-wait';
@@ -609,9 +610,9 @@
             avoidCanvas.style.display = 'block';
             initAvoidGameSetup();
         } else if (mode === 'REACTION') {
-            document.getElementById('reactionWrapper').style.display = 'block';
+            document.getElementById('reactionWrapper').style.display = 'flex';
             reactionArea.style.display = 'flex';
-            reactionArea.style.margin = '0';
+            reactionArea.style.margin = '';
             reactionArea.className = 'rect-wait';
             reactionArea.innerText = "대기...";
             reactionState = 'DISABLED';
@@ -657,8 +658,9 @@
             reactionState = 'WAIT';
             isFouler = false;
             reactionArea.className = 'rect-wait';
-            reactionArea.innerText = "초록색이 되면 탭!";
+            reactionArea.innerText = "준비...";
             reactionArea.style.display = 'flex';
+            reactionArea.style.margin = '';
         } else if (mode === 'MEMORY') {
             document.getElementById('timer').style.display = 'none';
             let gameTimeLeft = duration;
@@ -690,6 +692,7 @@
             reactionState = 'GO';
             reactionArea.className = 'rect-go';
             reactionArea.style.display = 'flex';
+            reactionArea.style.margin = '';
             reactionArea.innerText = "지금 탭!!!";
             reactionStartTime = Date.now();
         }
@@ -700,6 +703,7 @@
         if (winnerId === socket.id) return;
         reactionState = 'DISABLED';
         reactionArea.className = 'rect-foul';
+        reactionArea.style.margin = '';
         reactionArea.innerText = "탈락 😵";
         document.getElementById('reactionDeadMsg').innerText = "탈락! 😵\n결과를 기다리는 중...";
         document.getElementById('reactionDeadOverlay').style.display = 'flex';
@@ -708,6 +712,7 @@
     socket.on('reaction_eliminated', () => {
         reactionState = 'DISABLED';
         reactionArea.className = 'rect-foul';
+        reactionArea.style.margin = '';
         reactionArea.innerText = "탈락 😵";
         document.getElementById('reactionDeadMsg').innerText = "탈락! 😵\n결과를 기다리는 중...";
         document.getElementById('reactionDeadOverlay').style.display = 'flex';
@@ -718,12 +723,14 @@
         if (reactionState === 'WAIT') {
             reactionState = 'DISABLED';
             reactionArea.className = 'rect-foul';
+            reactionArea.style.margin = '';
             reactionArea.innerText = "부정출발! (실격)";
             isFouler = true;
             socket.emit('reaction_result', -1);
         } else if (reactionState === 'GO') {
             const diff = Date.now() - reactionStartTime;
             reactionState = 'DISABLED';
+            reactionArea.style.margin = '';
             reactionArea.innerText = `${diff}ms!`;
             socket.emit('reaction_result', diff);
         }
