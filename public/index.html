@@ -23,13 +23,14 @@
         html {
             min-height: 100%;
             overflow-x: hidden;
-            background: radial-gradient(circle at center, #1a6ee8 0%, #06073a 100%);
+            background: radial-gradient(circle at center, #1a6ee8 0%, #06073a 100%) #06073a;
             background-attachment: fixed;
         }
 
         body {
             font-family: 'Do Hyeon', sans-serif;
-            background: transparent; /* html의 배경을 사용 */
+            background: transparent;
+            -webkit-overflow-scrolling: touch;
             color: var(--text-color);
             margin: 0;
             padding: 0;
@@ -513,7 +514,7 @@
         document.getElementById(id).classList.add('active');
         const container = document.querySelector('.container');
         container.classList.toggle('game-active', id === 'screen-game');
-        container.classList.toggle('landing-active', id === 'screen-landing');
+        container.classList.toggle('landing-active', id !== 'screen-game');
     }
 
     function goToMenu() {
