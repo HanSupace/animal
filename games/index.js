@@ -48,7 +48,6 @@ function startRandomGame(io, rooms, roomName, endGame) {
         const duration = GAME_DURATIONS[room.currentGameMode];
 
         userIds.forEach(id => {
-            if (!room.users[id]) return;
             room.users[id].score = getInitialScore(room.currentGameMode);
             room.users[id].isDead = false;
         });
