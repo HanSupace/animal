@@ -171,7 +171,6 @@ function endGame(roomName, foulerId = null, isTimeout = false) {
         room.users[wid].winCount = Number(room.users[wid].winCount || 0) + 1;
 
         if (room.users[wid].winCount >= 3) {
-            console.log(`🏆 [최종 우승] ${room.users[wid].userName} 3승 달성!!`);
             isFinal = true;
             finalWinner = room.users[wid].userName;
         }
